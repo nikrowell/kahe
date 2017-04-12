@@ -1,14 +1,11 @@
 import * as utils from './utils';
 import events from './events';
-import Mediator from './mediator';
 import Router from './router';
 import Views from './views';
 
 const extend = utils.extend;
 const isArray = utils.isArray;
 const isFunction = utils.isFunction;
-const isObject = utils.isObject;
-const noop = utils.noop;
 
 class Framework {
 
@@ -20,7 +17,7 @@ class Framework {
 
     start() {
 
-        const bootstrap = (settings) => {
+        const bootstrap = (settings = {}) => {
 
             this.views = new Views(settings);
             this.router = new Router(settings);
@@ -39,10 +36,7 @@ class Framework {
         };
 
         let settings = isFunction(this.setup) ? this.setup(bootstrap) : this.setup;
-        if(isObject(settings)) bootstrap(settings);
-
-        delete this.setup;
-        this.start = noop;
+        settings && bootstrap(settings);
 
         return this;
     }
@@ -63,15 +57,14 @@ class Framework {
 
 function change(route) {
 
-    let handler = isArray(route.controller) ? route.controller : [route.controller];
+    let controller = isArray(route.controller) ? route.controller : [ route.controller ];
     let instances = [];
 
-    for(let i = 0, length = handler.length; i < length; i++) {
-        instances[i] = isFunction(handler[i]) ? new handler[i]() : Object.create(handler[i]);
+    for(let i = 0, length = controller.length; i < length; i++) {
+        instances[i] = isFunction(controller[i]) ? new controller[i]() : Object.create(controller[i]);
     }
 
-    let handlers = new Mediator(...instances);
-    this.views.show(handlers, route);
+    this.views.show(route, instances);
 }
 
 export default function(init) {

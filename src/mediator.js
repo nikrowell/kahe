@@ -18,7 +18,7 @@ class Mediator {
 
     animateIn(req, done) {
         this.resize(window.innerWidth, window.innerHeight);
-        setTimeout(() => { this.execute('animateIn', req, done); });
+        this.execute('animateIn', req, done);
     }
 
     animateOut(req, done) {

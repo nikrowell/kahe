@@ -1,3 +1,4 @@
+import Mediator from './mediator';
 import { isDefined, isFunction, noop } from './utils';
 
 class Views {
@@ -6,38 +7,34 @@ class Views {
         this.overlap = isDefined(settings.overlap) ? settings.overlap : true;
         this.current = null;
         this.incoming = null;
+        this.outgoing = null;
     }
 
     resize(width, height) {
-        this.current && this.current.resize(width, height);
+        this.current.resize(width, height);
     }
 
-    show(section, request) {
+    show(request, views) {
 
-        this.request = request;
+        let incoming = new Mediator(...views);
+        this.incoming = incoming;
+        this.outgoing = this.current;
 
-        if(this.current !== section && this.incoming !== section) {
-
-            this.incoming && this.incoming.destroy(request, noop);
-            this.incoming = section;
-            section.init(request, () => this.swap(section));
-        }
+        incoming.init(request, () => this.swap(request));
     }
 
-    swap(incoming) {
+    swap(request) {
 
-        let overlap = this.overlap;
-        let request = this.request;
-        let outgoing = this.current;
+        let incoming = this.incoming;
+        let outgoing = this.outgoing;
+
+        const transitionIn = () => {
+            incoming.animateIn(request, noop);
+            this.current = incoming;
+        };
 
         const transitionOut = (next) => {
             outgoing.animateOut(request, next || noop);
-        };
-
-        const transitionIn = () => {
-            this.current = incoming;
-            this.incoming = null;
-            incoming.animateIn(request, noop);
         };
 
         if(!outgoing) {
@@ -45,11 +42,10 @@ class Views {
             return;
         }
 
-        if(overlap) {
+        if(this.overlap) {
             transitionOut();
             transitionIn();
         } else {
-            // TODO: WTF, what isn't transitionIn getting called?
             let next = transitionIn;
             transitionOut(next);
         }

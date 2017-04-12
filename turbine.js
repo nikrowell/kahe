@@ -64,7 +64,7 @@
         return typeof value === 'number';
     }
 
-    function isObject$1(value) {
+    function isObject(value) {
         return typeof value === 'object';
     }
 
@@ -76,7 +76,7 @@
         return value === undefined;
     }
 
-    function noop$1() {
+    function noop() {
 
     }
 
@@ -91,10 +91,10 @@
     	isFunction: isFunction$1,
     	isNull: isNull,
     	isNumber: isNumber,
-    	isObject: isObject$1,
+    	isObject: isObject,
     	isString: isString,
     	isUndefined: isUndefined,
-    	noop: noop$1
+    	noop: noop
     });
 
     var events = {
@@ -159,68 +159,6 @@
 
             return this;
         }
-    };
-
-    var Mediator = function Mediator() {
-        var views = [], len = arguments.length;
-        while ( len-- ) views[ len ] = arguments[ len ];
-
-        this.views = views;
-    };
-
-    Mediator.prototype.init = function init (req, done) {
-        this.execute('init', req, done);
-    };
-
-    Mediator.prototype.resize = function resize (w, h) {
-        this.views.forEach(function(view) {
-            isFunction$1(view.resize) && view.resize(w, h);
-        });
-    };
-
-    Mediator.prototype.animateIn = function animateIn (req, done) {
-            var this$1 = this;
-
-        this.resize(window.innerWidth, window.innerHeight);
-        setTimeout(function () { this$1.execute('animateIn', req, done); });
-    };
-
-    Mediator.prototype.animateOut = function animateOut (req, done) {
-            var this$1 = this;
-
-        this.execute('animateOut', req, function () {
-            this$1.destroy(req, noop$1);
-            done();
-        });
-    };
-
-    Mediator.prototype.destroy = function destroy (req, done) {
-        this.execute('destroy', req, done);
-    };
-
-    Mediator.prototype.execute = function execute (method, req, done) {
-
-        var total = 0;
-        var count = 0;
-
-        this.views.forEach(function(view) {
-            isFunction$1(view[method]) && total++;
-        });
-
-        if(!total) {
-            done();
-            return;
-        }
-
-        function oneDone() {
-            if(++count === total) { done(); }
-        }
-
-        this.views.forEach(function(view) {
-            if(isFunction$1(view[method])) {
-                view[method].call(view, req, oneDone);
-            }
-        });
     };
 
     var reserved = /^(controller|hash|keys|params|path|query|regex|splats|url)$/;
@@ -330,10 +268,10 @@
         this.routes = [];
         this.resolved = null;
 
-        var routes = settings.routes;
+        var routes = settings.routes || {};
 
         if(!routes['*']) {
-            routes['*'] = noop$1;
+            routes['*'] = noop;
         }
 
         Object.keys(routes).forEach(function (path) {
@@ -341,27 +279,12 @@
             var route = new Route(path, config);
             this$1.routes.push(route);
         });
-
-        extend$1(this, events);
     };
 
     Router.prototype.start = function start () {
         window.addEventListener('popstate', onpopstate.bind(this));
         document.addEventListener('click', onclick.bind(this));
         this.go(window.location.href, {replace: true});
-    };
-
-    Router.prototype.match = function match (path) {
-            var this$1 = this;
-
-
-        var route = null;
-        for(var i = 0, len = this.routes.length; i < len; i++) {
-            route = this$1.routes[i].match(path);
-            if(route) { break; }
-        }
-
-        return route;
     };
 
     Router.prototype.go = function go (url, options) {
@@ -374,7 +297,7 @@
         var path = url.split(/[?#]/)[0];
         if(path == this.resolved) { return; }
 
-        var route = this.match(path);
+        var route = match.call(this, path);
         if(!route) { return; }
 
         this.resolved = path;
@@ -387,6 +310,20 @@
         // change to using transitions, which could be aborted or redirected
         this.trigger('route', route);
     };
+
+    function match(path) {
+        var this$1 = this;
+
+
+        var route = null;
+
+        for(var i = 0, len = this.routes.length; i < len; i++) {
+            route = this$1.routes[i].match(path);
+            if(route) { break; }
+        }
+
+        return route;
+    }
 
     function onpopstate(event) {
         var href = window.location.href;
@@ -416,46 +353,104 @@
         this.go(el.href);
     }
 
+    extend$1(Router.prototype, events);
+
+    var Mediator = function Mediator() {
+        var views = [], len = arguments.length;
+        while ( len-- ) views[ len ] = arguments[ len ];
+
+        this.views = views;
+    };
+
+    Mediator.prototype.init = function init (req, done) {
+        this.execute('init', req, done);
+    };
+
+    Mediator.prototype.resize = function resize (w, h) {
+        this.views.forEach(function(view) {
+            isFunction$1(view.resize) && view.resize(w, h);
+        });
+    };
+
+    Mediator.prototype.animateIn = function animateIn (req, done) {
+        this.resize(window.innerWidth, window.innerHeight);
+        this.execute('animateIn', req, done);
+    };
+
+    Mediator.prototype.animateOut = function animateOut (req, done) {
+            var this$1 = this;
+
+        this.execute('animateOut', req, function () {
+            this$1.destroy(req, noop);
+            done();
+        });
+    };
+
+    Mediator.prototype.destroy = function destroy (req, done) {
+        this.execute('destroy', req, done);
+    };
+
+    Mediator.prototype.execute = function execute (method, req, done) {
+
+        var total = 0;
+        var count = 0;
+
+        this.views.forEach(function(view) {
+            isFunction$1(view[method]) && total++;
+        });
+
+        if(!total) {
+            done();
+            return;
+        }
+
+        function oneDone() {
+            if(++count === total) { done(); }
+        }
+
+        this.views.forEach(function(view) {
+            if(isFunction$1(view[method])) {
+                view[method].call(view, req, oneDone);
+            }
+        });
+    };
+
     var Views = function Views(settings) {
         this.overlap = isDefined(settings.overlap) ? settings.overlap : true;
         this.current = null;
         this.incoming = null;
+        this.outgoing = null;
     };
 
     Views.prototype.resize = function resize (width, height) {
-        this.current && this.current.resize(width, height);
+        this.current.resize(width, height);
     };
 
-    Views.prototype.show = function show (section, request) {
+    Views.prototype.show = function show (request, views) {
             var this$1 = this;
 
 
-        this.request = request;
+        var incoming = new (Function.prototype.bind.apply( Mediator, [ null ].concat( views) ));
+        this.incoming = incoming;
+        this.outgoing = this.current;
 
-        if(this.current !== section && this.incoming !== section) {
-
-            this.incoming && this.incoming.destroy(request, noop$1);
-            this.incoming = section;
-            section.init(request, function () { return this$1.swap(section); });
-        }
+        incoming.init(request, function () { return this$1.swap(request); });
     };
 
-    Views.prototype.swap = function swap (incoming) {
+    Views.prototype.swap = function swap (request) {
             var this$1 = this;
 
 
-        var overlap = this.overlap;
-        var request = this.request;
-        var outgoing = this.current;
-
-        var transitionOut = function (next) {
-            outgoing.animateOut(request, next || noop$1);
-        };
+        var incoming = this.incoming;
+        var outgoing = this.outgoing;
 
         var transitionIn = function () {
+            incoming.animateIn(request, noop);
             this$1.current = incoming;
-            this$1.incoming = null;
-            incoming.animateIn(request, noop$1);
+        };
+
+        var transitionOut = function (next) {
+            outgoing.animateOut(request, next || noop);
         };
 
         if(!outgoing) {
@@ -463,11 +458,10 @@
             return;
         }
 
-        if(overlap) {
+        if(this.overlap) {
             transitionOut();
             transitionIn();
         } else {
-            // TODO: WTF, what isn't transitionIn getting called?
             var next = transitionIn;
             transitionOut(next);
         }
@@ -476,8 +470,6 @@
     var extend$$1 = extend$1;
     var isArray$$1 = isArray$1;
     var isFunction$$1 = isFunction$1;
-    var isObject$$1 = isObject$1;
-    var noop$$1 = noop$1;
 
     var Framework = function Framework(setup) {
         this.setup = setup;
@@ -490,6 +482,8 @@
 
 
         var bootstrap = function (settings) {
+                if ( settings === void 0 ) settings = {};
+
 
             this$1.views = new Views(settings);
             this$1.router = new Router(settings);
@@ -508,10 +502,7 @@
         };
 
         var settings = isFunction$$1(this.setup) ? this.setup(bootstrap) : this.setup;
-        if(isObject$$1(settings)) { bootstrap(settings); }
-
-        delete this.setup;
-        this.start = noop$$1;
+        settings && bootstrap(settings);
 
         return this;
     };
@@ -531,15 +522,14 @@
 
     function change(route) {
 
-        var handler = isArray$$1(route.controller) ? route.controller : [route.controller];
+        var controller = isArray$$1(route.controller) ? route.controller : [ route.controller ];
         var instances = [];
 
-        for(var i = 0, length = handler.length; i < length; i++) {
-            instances[i] = isFunction$$1(handler[i]) ? new handler[i]() : Object.create(handler[i]);
+        for(var i = 0, length = controller.length; i < length; i++) {
+            instances[i] = isFunction$$1(controller[i]) ? new controller[i]() : Object.create(controller[i]);
         }
 
-        var handlers = new (Function.prototype.bind.apply( Mediator, [ null ].concat( instances) ));
-        this.views.show(handlers, route);
+        this.views.show(route, instances);
     }
 
     var index = function(init) {

@@ -10,7 +10,7 @@ class Router {
         this.routes = [];
         this.resolved = null;
 
-        let routes = settings.routes;
+        let routes = settings.routes || {};
 
         if(!routes['*']) {
             routes['*'] = noop;
@@ -21,25 +21,12 @@ class Router {
             let route = new Route(path, config);
             this.routes.push(route);
         });
-
-        extend(this, events);
     }
 
     start() {
         window.addEventListener('popstate', onpopstate.bind(this));
         document.addEventListener('click', onclick.bind(this));
         this.go(window.location.href, {replace: true});
-    }
-
-    match(path) {
-
-        let route = null;
-        for(let i = 0, len = this.routes.length; i < len; i++) {
-            route = this.routes[i].match(path);
-            if(route) break;
-        }
-
-        return route;
     }
 
     go(url, options = {}) {
@@ -50,7 +37,7 @@ class Router {
         let path = url.split(/[?#]/)[0];
         if(path == this.resolved) return;
 
-        const route = this.match(path);
+        const route = match.call(this, path);
         if(!route) return;
 
         this.resolved = path;
@@ -63,6 +50,18 @@ class Router {
         // change to using transitions, which could be aborted or redirected
         this.trigger('route', route);
     }
+}
+
+function match(path) {
+
+    let route = null;
+
+    for(let i = 0, len = this.routes.length; i < len; i++) {
+        route = this.routes[i].match(path);
+        if(route) break;
+    }
+
+    return route;
 }
 
 function onpopstate(event) {
@@ -93,4 +92,5 @@ function onclick(event) {
     this.go(el.href);
 }
 
+extend(Router.prototype, events);
 export default Router;
