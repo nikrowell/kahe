@@ -9,10 +9,12 @@ export default {
 
     once: function(name, callback, context) {
 
-        let listener = () => {
-            this.off(name, listener);
+        let self = this;
+
+        function listener() {
             callback.apply(context, arguments);
-        };
+            self.off(name, listener);
+        }
 
         listener.ref = callback;
         this.on(name, listener, context);

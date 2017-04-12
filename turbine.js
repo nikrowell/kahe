@@ -107,14 +107,13 @@
         },
 
         once: function(name, callback, context) {
-            var arguments$1 = arguments;
-            var this$1 = this;
 
+            var self = this;
 
-            var listener = function () {
-                this$1.off(name, listener);
-                callback.apply(context, arguments$1);
-            };
+            function listener() {
+                callback.apply(context, arguments);
+                self.off(name, listener);
+            }
 
             listener.ref = callback;
             this.on(name, listener, context);
