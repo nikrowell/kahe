@@ -13,7 +13,7 @@ class Router {
         let routes = settings.routes || {};
 
         if(!routes['*']) {
-            routes['*'] = noop;
+            routes['*'] = (routes['/']) ? '/' : noop;
         }
 
         Object.keys(routes).forEach(path => {
