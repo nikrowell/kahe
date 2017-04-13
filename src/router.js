@@ -38,7 +38,9 @@ class Router {
         if(path == this.resolved) return;
 
         const route = match.call(this, path);
+
         if(!route) return;
+        if(typeof route.controller === 'string') return this.go(route.controller);
 
         this.resolved = path;
 
