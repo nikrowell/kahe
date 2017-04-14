@@ -45,7 +45,7 @@ class Route {
         delete clone.keys;
         delete clone.regex;
 
-        return Object.freeze(clone);
+        return clone;
     }
 }
 
