@@ -1,4 +1,4 @@
-/*! @nikrowell/turbine 0.2.2 */
+/*! @nikrowell/turbine 0.2.3 */
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
     typeof define === 'function' && define.amd ? define(factory) :
@@ -488,8 +488,8 @@
 
             this$1.views = new Views(settings);
             this$1.router = new Router(settings);
-            this$1.router.on('route', change.bind(this$1));
             this$1.router.on('route', this$1.trigger.bind(this$1, 'route'));
+            this$1.router.on('route', change.bind(this$1));
 
             window.addEventListener('resize', this$1.resize.bind(this$1));
 
