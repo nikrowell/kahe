@@ -1,4 +1,4 @@
-/*! @nikrowell/turbine 0.2.1 */
+/*! @nikrowell/turbine 0.2.2 */
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
     typeof define === 'function' && define.amd ? define(factory) :
