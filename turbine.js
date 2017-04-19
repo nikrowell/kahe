@@ -147,7 +147,7 @@
             if(listeners && callback) {
                 for(var i = 0, length = listeners.length; i < length; i++) {
                     if(listeners[i].callback !== callback && listeners[i].callback.ref !== callback) {
-                        live.push(listeners[i]);
+                        events.push(listeners[i]);
                     }
                 }
             }
