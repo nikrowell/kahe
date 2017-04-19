@@ -28,9 +28,10 @@ class Views {
         let incoming = this.incoming;
         let outgoing = this.outgoing;
 
+        this.current = incoming;
+
         const transitionIn = () => {
             incoming.animateIn(request, noop);
-            this.current = incoming;
         };
 
         const transitionOut = (next) => {

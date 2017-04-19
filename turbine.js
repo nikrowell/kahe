@@ -439,15 +439,14 @@
     };
 
     Views.prototype.swap = function swap (request) {
-            var this$1 = this;
-
 
         var incoming = this.incoming;
         var outgoing = this.outgoing;
 
+        this.current = incoming;
+
         var transitionIn = function () {
             incoming.animateIn(request, noop);
-            this$1.current = incoming;
         };
 
         var transitionOut = function (next) {
