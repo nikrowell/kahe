@@ -34,11 +34,7 @@ export default {
 
         return this;
     },
-
-    // TODO: tests for removing events for the following situations:
-    // emitter.off('evt', func) ... only removes func callback from evt
-    // emitter.off('evt') ... removes all listeners for event evt
-    // emitter.off() ... removes all listeners for all events
+    
     off: function(name, callback) {
 
         let e = this.e || (this.e = {});
@@ -47,7 +43,9 @@ export default {
 
         if(listeners && callback) {
             for(let i = 0, length = listeners.length; i < length; i++) {
-                if(listeners[i].callback !== callback && listeners[i].callback.ref !== callback) events.push(listeners[i]);
+                if(listeners[i].callback !== callback && listeners[i].callback.ref !== callback) {
+                    live.push(listeners[i]);
+                }
             }
         }
 

@@ -42,14 +42,9 @@ class Router {
         if(!route) return;
         if(typeof route.controller === 'string') return this.go(route.controller);
 
+        window.history[options.replace ? 'replaceState' : 'pushState']({}, '', url);
+        
         this.resolved = path;
-
-        // TODO: window.history check to allow for tape testing?
-        window.history && window.history[options.replace ? 'replaceState' : 'pushState']({}, '', url);
-
-        // TODO: move this or add options.trigger or options.silent?
-        // We may not always want to trigger route events here once we
-        // change to using transitions, which could be aborted or redirected
         this.trigger('route', route);
     }
 }

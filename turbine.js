@@ -137,11 +137,7 @@
 
             return this;
         },
-
-        // TODO: tests for removing events for the following situations:
-        // emitter.off('evt', func) ... only removes func callback from evt
-        // emitter.off('evt') ... removes all listeners for event evt
-        // emitter.off() ... removes all listeners for all events
+        
         off: function(name, callback) {
 
             var e = this.e || (this.e = {});
@@ -150,7 +146,9 @@
 
             if(listeners && callback) {
                 for(var i = 0, length = listeners.length; i < length; i++) {
-                    if(listeners[i].callback !== callback && listeners[i].callback.ref !== callback) { events.push(listeners[i]); }
+                    if(listeners[i].callback !== callback && listeners[i].callback.ref !== callback) {
+                        live.push(listeners[i]);
+                    }
                 }
             }
 
@@ -301,14 +299,9 @@
         if(!route) { return; }
         if(typeof route.controller === 'string') { return this.go(route.controller); }
 
+        window.history[options.replace ? 'replaceState' : 'pushState']({}, '', url);
+            
         this.resolved = path;
-
-        // TODO: window.history check to allow for tape testing?
-        window.history && window.history[options.replace ? 'replaceState' : 'pushState']({}, '', url);
-
-        // TODO: move this or add options.trigger or options.silent?
-        // We may not always want to trigger route events here once we
-        // change to using transitions, which could be aborted or redirected
         this.trigger('route', route);
     };
 

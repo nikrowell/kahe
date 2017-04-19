@@ -5,3 +5,5 @@ _*
 index.php
 index.html
 node_modules/
+*.sublime-project
+*.sublime-workspace
