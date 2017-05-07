@@ -1,7 +1,7 @@
 import * as utils from './utils';
 import events from './events';
+import Controller from './controller';
 import Router from './router';
-import Views from './views';
 
 const extend = utils.extend;
 const isArray = utils.isArray;
@@ -19,7 +19,7 @@ class Framework {
 
         const bootstrap = (settings = {}) => {
 
-            this.views = new Views(settings);
+            this.controller = new Controller(settings);
             this.router = new Router(settings);
             this.router.on('route', this.trigger.bind(this, 'route'));
             this.router.on('route', change.bind(this));
@@ -44,7 +44,7 @@ class Framework {
     resize() {
         let width = window.innerWidth;
         let height = window.innerHeight;
-        this.views.resize(width, height);
+        this.controller.resize(width, height);
         this.trigger('resize', { width, height });
         return this;
     }
@@ -57,14 +57,14 @@ class Framework {
 
 function change(route) {
 
-    let controller = isArray(route.controller) ? route.controller : [ route.controller ];
+    let views = isArray(route.controller) ? route.controller : [ route.controller ];
     let instances = [];
 
-    for(let i = 0, length = controller.length; i < length; i++) {
-        instances[i] = isFunction(controller[i]) ? new controller[i]() : Object.create(controller[i]);
+    for(let i = 0, length = views.length; i < length; i++) {
+        instances[i] = isFunction(views[i]) ? new views[i]() : Object.create(views[i]);
     }
 
-    this.views.show(route, instances);
+    this.controller.show(route, instances);
 }
 
 export default function(init) {

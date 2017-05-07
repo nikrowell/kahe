@@ -1,7 +1,7 @@
 import Mediator from './mediator';
 import { isDefined, isFunction, noop } from './utils';
 
-class Views {
+class Controller {
 
     constructor(settings) {
         this.overlap = isDefined(settings.overlap) ? settings.overlap : true;
@@ -53,4 +53,4 @@ class Views {
     }
 }
 
-export default Views;
+export default Controller;
