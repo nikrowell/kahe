@@ -8,6 +8,7 @@ class Controller {
         this.current = null;
         this.incoming = null;
         this.outgoing = null;
+        this.queued = null;
     }
 
     resize(width, height) {
@@ -15,6 +16,11 @@ class Controller {
     }
 
     show(request, views) {
+
+        if(this.incoming) {
+            this.queued = [request, views];
+            return;
+        }
 
         let incoming = new Mediator(...views);
         this.incoming = incoming;
@@ -30,8 +36,16 @@ class Controller {
 
         this.current = incoming;
 
+        const transitionComplete = () => {
+            this.incoming = null;
+            if(this.queued) {
+                this.show(...this.queued);
+                this.queued = null;
+            }
+        };
+
         const transitionIn = () => {
-            incoming.animateIn(request, noop);
+            incoming.animateIn(request, transitionComplete);
         };
 
         const transitionOut = (next) => {

@@ -223,6 +223,7 @@
         this.current = null;
         this.incoming = null;
         this.outgoing = null;
+        this.queued = null;
     };
 
     Controller.prototype.resize = function resize (width, height) {
@@ -233,6 +234,11 @@
             var this$1 = this;
 
 
+        if(this.incoming) {
+            this.queued = [request, views];
+            return;
+        }
+
         var incoming = new (Function.prototype.bind.apply( Mediator, [ null ].concat( views) ));
         this.incoming = incoming;
         this.outgoing = this.current;
@@ -241,14 +247,25 @@
     };
 
     Controller.prototype.swap = function swap (request) {
+            var this$1 = this;
+
 
         var incoming = this.incoming;
         var outgoing = this.outgoing;
 
         this.current = incoming;
 
+        var transitionComplete = function () {
+            this$1.incoming = null;
+            if(this$1.queued) {
+                (ref = this$1).show.apply(ref, this$1.queued);
+                this$1.queued = null;
+            }
+                var ref;
+        };
+
         var transitionIn = function () {
-            incoming.animateIn(request, noop);
+            incoming.animateIn(request, transitionComplete);
         };
 
         var transitionOut = function (next) {
