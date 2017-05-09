@@ -7,7 +7,14 @@ class Mediator {
     }
 
     init(req, done) {
-        this.execute('init', req, done);
+        this.execute('init', req, () => {
+            this.ready(req, noop);
+            done();
+        });
+    }
+
+    ready(req, done) {
+        this.execute('ready', req, noop);
     }
 
     resize(w, h) {

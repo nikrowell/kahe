@@ -166,7 +166,16 @@
     };
 
     Mediator.prototype.init = function init (req, done) {
-        this.execute('init', req, done);
+            var this$1 = this;
+
+        this.execute('init', req, function () {
+            this$1.ready(req, noop);
+            done();
+        });
+    };
+
+    Mediator.prototype.ready = function ready (req, done) {
+        this.execute('ready', req, noop);
     };
 
     Mediator.prototype.resize = function resize (w, h) {
