@@ -17,11 +17,8 @@ class Controller {
 
     show(request, views) {
 
-        if(this.incoming) {
-            this.queued = [request, views];
-            return;
-        }
-
+        if(this.incoming) return;
+        
         let incoming = new Mediator(...views);
         this.incoming = incoming;
         this.outgoing = this.current;
@@ -38,10 +35,6 @@ class Controller {
 
         const transitionComplete = () => {
             this.incoming = null;
-            if(this.queued) {
-                this.show(...this.queued);
-                this.queued = null;
-            }
         };
 
         const transitionIn = () => {

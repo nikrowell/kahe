@@ -243,11 +243,8 @@
             var this$1 = this;
 
 
-        if(this.incoming) {
-            this.queued = [request, views];
-            return;
-        }
-
+        if(this.incoming) { return; }
+            
         var incoming = new (Function.prototype.bind.apply( Mediator, [ null ].concat( views) ));
         this.incoming = incoming;
         this.outgoing = this.current;
@@ -266,11 +263,6 @@
 
         var transitionComplete = function () {
             this$1.incoming = null;
-            if(this$1.queued) {
-                (ref = this$1).show.apply(ref, this$1.queued);
-                this$1.queued = null;
-            }
-                var ref;
         };
 
         var transitionIn = function () {
