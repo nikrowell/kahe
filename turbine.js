@@ -243,8 +243,8 @@
             var this$1 = this;
 
 
-        if(this.incoming) { return; }
-            
+        // if(this.incoming) return;
+
         var incoming = new (Function.prototype.bind.apply( Mediator, [ null ].concat( views) ));
         this.incoming = incoming;
         this.outgoing = this.current;

@@ -17,8 +17,8 @@ class Controller {
 
     show(request, views) {
 
-        if(this.incoming) return;
-        
+        // if(this.incoming) return;
+
         let incoming = new Mediator(...views);
         this.incoming = incoming;
         this.outgoing = this.current;
