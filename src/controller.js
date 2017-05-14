@@ -17,8 +17,6 @@ class Controller {
 
     show(request, views) {
 
-        // if(this.incoming) return;
-
         let incoming = new Mediator(...views);
         this.incoming = incoming;
         this.outgoing = this.current;
@@ -32,10 +30,6 @@ class Controller {
         let outgoing = this.outgoing;
 
         this.current = incoming;
-
-        const transitionComplete = () => {
-            this.incoming = null;
-        };
 
         const transitionIn = () => {
             incoming.animateIn(request, transitionComplete);
