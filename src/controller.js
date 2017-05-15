@@ -31,6 +31,10 @@ class Controller {
 
         this.current = incoming;
 
+        const transitionComplete = () => {
+            this.incoming = null;
+        };
+
         const transitionIn = () => {
             incoming.animateIn(request, transitionComplete);
         };

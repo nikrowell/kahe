@@ -251,11 +251,17 @@
     };
 
     Controller.prototype.swap = function swap (request) {
+            var this$1 = this;
+
 
         var incoming = this.incoming;
         var outgoing = this.outgoing;
 
         this.current = incoming;
+
+        var transitionComplete = function () {
+            this$1.incoming = null;
+        };
 
         var transitionIn = function () {
             incoming.animateIn(request, transitionComplete);
