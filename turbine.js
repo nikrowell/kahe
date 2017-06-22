@@ -99,14 +99,15 @@
 
     var events = {
 
-        on: function(name, callback, context) {
+        on: function on(name, callback, context) {
+
             var e = this.e || (this.e = {});
             (e[name] || (e[name] = [])).push({ callback: callback, context: context });
 
             return this;
         },
 
-        once: function(name, callback, context) {
+        once: function once(name, callback, context) {
 
             var self = this;
 
@@ -121,7 +122,7 @@
             return this;
         },
 
-        trigger: function(name) {
+        emit: function emit(name) {
             var this$1 = this;
             var data = [], len = arguments.length - 1;
             while ( len-- > 0 ) data[ len ] = arguments[ len + 1 ];
@@ -137,8 +138,8 @@
 
             return this;
         },
-        
-        off: function(name, callback) {
+
+        off: function off(name, callback) {
 
             var e = this.e || (this.e = {});
             var listeners = e[name];
@@ -418,9 +419,9 @@
         if(typeof route.controller === 'string') { return this.go(route.controller); }
 
         window.history[options.replace ? 'replaceState' : 'pushState']({}, '', url);
-            
+
         this.resolved = path;
-        this.trigger('route', route);
+        this.emit('route', route);
     };
 
     function match(path) {
@@ -487,7 +488,7 @@
 
             this$1.controller = new Controller(settings);
             this$1.router = new Router(settings);
-            this$1.router.on('route', this$1.trigger.bind(this$1, 'route'));
+            this$1.router.on('route', this$1.emit.bind(this$1, 'route'));
             this$1.router.on('route', change.bind(this$1));
 
             window.addEventListener('resize', this$1.resize.bind(this$1));
@@ -511,7 +512,7 @@
         var width = window.innerWidth;
         var height = window.innerHeight;
         this.controller.resize(width, height);
-        this.trigger('resize', { width: width, height: height });
+        this.emit('resize', { width: width, height: height });
         return this;
     };
 

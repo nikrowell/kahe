@@ -1,13 +1,14 @@
 export default {
 
-    on: function(name, callback, context) {
+    on(name, callback, context) {
+
         let e = this.e || (this.e = {});
         (e[name] || (e[name] = [])).push({ callback, context });
 
         return this;
     },
 
-    once: function(name, callback, context) {
+    once(name, callback, context) {
 
         let self = this;
 
@@ -22,7 +23,7 @@ export default {
         return this;
     },
 
-    trigger: function(name, ...data) {
+    emit(name, ...data) {
 
         let e = this.e || (this.e = {});
         let listeners = e[name] || [];
@@ -34,8 +35,8 @@ export default {
 
         return this;
     },
-    
-    off: function(name, callback) {
+
+    off(name, callback) {
 
         let e = this.e || (this.e = {});
         let listeners = e[name];

@@ -43,9 +43,9 @@ class Router {
         if(typeof route.controller === 'string') return this.go(route.controller);
 
         window.history[options.replace ? 'replaceState' : 'pushState']({}, '', url);
-        
+
         this.resolved = path;
-        this.trigger('route', route);
+        this.emit('route', route);
     }
 }
 

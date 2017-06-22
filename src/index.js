@@ -21,7 +21,7 @@ class Framework {
 
             this.controller = new Controller(settings);
             this.router = new Router(settings);
-            this.router.on('route', this.trigger.bind(this, 'route'));
+            this.router.on('route', this.emit.bind(this, 'route'));
             this.router.on('route', change.bind(this));
 
             window.addEventListener('resize', this.resize.bind(this));
@@ -45,7 +45,7 @@ class Framework {
         let width = window.innerWidth;
         let height = window.innerHeight;
         this.controller.resize(width, height);
-        this.trigger('resize', { width, height });
+        this.emit('resize', { width, height });
         return this;
     }
 
