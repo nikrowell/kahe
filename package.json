@@ -13,7 +13,8 @@
     "browser",
     "pushstate",
     "router",
-    "framework"
+    "framework",
+    "transitions"
   ],
   "scripts": {
     "start": "rollup --config --watch",
