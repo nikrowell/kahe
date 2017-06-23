@@ -504,8 +504,6 @@
 
         var settings = isFunction$$1(this.setup) ? this.setup(bootstrap) : this.setup;
         settings && bootstrap(settings);
-
-        return this;
     };
 
     Framework.prototype.resize = function resize () {
@@ -513,12 +511,10 @@
         var height = window.innerHeight;
         this.controller.resize(width, height);
         this.emit('resize', { width: width, height: height });
-        return this;
     };
 
     Framework.prototype.go = function go (url) {
         this.router.go(url);
-        return this;
     };
 
     function change(route) {
@@ -527,7 +523,8 @@
         var instances = [];
 
         for(var i = 0, length = views.length; i < length; i++) {
-            instances[i] = isFunction$$1(views[i]) ? new views[i]() : Object.create(views[i]);
+            var view = views[i];
+            instances[i] = isFunction$$1(view) ? new view() : Object.create(view);
         }
 
         this.controller.show(route, instances);

@@ -37,8 +37,6 @@ class Framework {
 
         let settings = isFunction(this.setup) ? this.setup(bootstrap) : this.setup;
         settings && bootstrap(settings);
-
-        return this;
     }
 
     resize() {
@@ -46,12 +44,10 @@ class Framework {
         let height = window.innerHeight;
         this.controller.resize(width, height);
         this.emit('resize', { width, height });
-        return this;
     }
 
     go(url) {
         this.router.go(url);
-        return this;
     }
 }
 
@@ -61,7 +57,8 @@ function change(route) {
     let instances = [];
 
     for(let i = 0, length = views.length; i < length; i++) {
-        instances[i] = isFunction(views[i]) ? new views[i]() : Object.create(views[i]);
+        let view = views[i];
+        instances[i] = isFunction(view) ? new view() : Object.create(view);
     }
 
     this.controller.show(route, instances);
