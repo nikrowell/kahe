@@ -224,7 +224,6 @@
         this.current = null;
         this.incoming = null;
         this.outgoing = null;
-        this.queued = null;
     };
 
     Controller.prototype.resize = function resize (width, height) {

@@ -8,7 +8,6 @@ class Controller {
         this.current = null;
         this.incoming = null;
         this.outgoing = null;
-        this.queued = null;
     }
 
     resize(width, height) {
