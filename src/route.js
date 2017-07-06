@@ -91,7 +91,7 @@ function convert(value) {
         value = null;
     } else if(value == 'undefined') {
         value = undefined;
-    } else if(isNaN(value) == false) {
+    } else if(isNaN(value) === false) {
         value = Number(value);
     }
 

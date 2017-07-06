@@ -99,14 +99,15 @@
 
     var events = {
 
-        on: function(name, callback, context) {
+        on: function on(name, callback, context) {
+
             var e = this.e || (this.e = {});
             (e[name] || (e[name] = [])).push({ callback: callback, context: context });
 
             return this;
         },
 
-        once: function(name, callback, context) {
+        once: function once(name, callback, context) {
 
             var self = this;
 
@@ -121,7 +122,7 @@
             return this;
         },
 
-        trigger: function(name) {
+        emit: function emit(name) {
             var this$1 = this;
             var data = [], len = arguments.length - 1;
             while ( len-- > 0 ) data[ len ] = arguments[ len + 1 ];
@@ -137,8 +138,8 @@
 
             return this;
         },
-        
-        off: function(name, callback) {
+
+        off: function off(name, callback) {
 
             var e = this.e || (this.e = {});
             var listeners = e[name];
@@ -223,7 +224,6 @@
         this.current = null;
         this.incoming = null;
         this.outgoing = null;
-        this.queued = null;
     };
 
     Controller.prototype.resize = function resize (width, height) {
@@ -418,9 +418,9 @@
         if(typeof route.controller === 'string') { return this.go(route.controller); }
 
         window.history[options.replace ? 'replaceState' : 'pushState']({}, '', url);
-            
+
         this.resolved = path;
-        this.trigger('route', route);
+        this.emit('route', route);
     };
 
     function match(path) {
@@ -467,14 +467,14 @@
 
     extend$1(Router.prototype, events);
 
-    var extend$$1 = extend$1;
-    var isArray$$1 = isArray$1;
-    var isFunction$$1 = isFunction$1;
+    var extend = extend$1;
+    var isArray = isArray$1;
+    var isFunction = isFunction$1;
 
     var Framework = function Framework(setup) {
         this.setup = setup;
         this.utils = utils;
-        extend$$1(this, events);
+        extend(this, events);
     };
 
     Framework.prototype.start = function start () {
@@ -487,7 +487,7 @@
 
             this$1.controller = new Controller(settings);
             this$1.router = new Router(settings);
-            this$1.router.on('route', this$1.trigger.bind(this$1, 'route'));
+            this$1.router.on('route', this$1.emit.bind(this$1, 'route'));
             this$1.router.on('route', change.bind(this$1));
 
             window.addEventListener('resize', this$1.resize.bind(this$1));
@@ -501,32 +501,29 @@
             }
         };
 
-        var settings = isFunction$$1(this.setup) ? this.setup(bootstrap) : this.setup;
+        var settings = isFunction(this.setup) ? this.setup(bootstrap) : this.setup;
         settings && bootstrap(settings);
-
-        return this;
     };
 
     Framework.prototype.resize = function resize () {
         var width = window.innerWidth;
         var height = window.innerHeight;
         this.controller.resize(width, height);
-        this.trigger('resize', { width: width, height: height });
-        return this;
+        this.emit('resize', { width: width, height: height });
     };
 
     Framework.prototype.go = function go (url) {
         this.router.go(url);
-        return this;
     };
 
     function change(route) {
 
-        var views = isArray$$1(route.controller) ? route.controller : [ route.controller ];
+        var views = isArray(route.controller) ? route.controller : [ route.controller ];
         var instances = [];
 
         for(var i = 0, length = views.length; i < length; i++) {
-            instances[i] = isFunction$$1(views[i]) ? new views[i]() : Object.create(views[i]);
+            var view = views[i];
+            instances[i] = isFunction(view) ? new view() : Object.create(view);
         }
 
         this.controller.show(route, instances);
