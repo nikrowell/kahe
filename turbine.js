@@ -467,14 +467,14 @@
 
     extend$1(Router.prototype, events);
 
-    var extend$$1 = extend$1;
-    var isArray$$1 = isArray$1;
-    var isFunction$$1 = isFunction$1;
+    var extend = extend$1;
+    var isArray = isArray$1;
+    var isFunction = isFunction$1;
 
     var Framework = function Framework(setup) {
         this.setup = setup;
         this.utils = utils;
-        extend$$1(this, events);
+        extend(this, events);
     };
 
     Framework.prototype.start = function start () {
@@ -501,7 +501,7 @@
             }
         };
 
-        var settings = isFunction$$1(this.setup) ? this.setup(bootstrap) : this.setup;
+        var settings = isFunction(this.setup) ? this.setup(bootstrap) : this.setup;
         settings && bootstrap(settings);
     };
 
@@ -518,12 +518,12 @@
 
     function change(route) {
 
-        var views = isArray$$1(route.controller) ? route.controller : [ route.controller ];
+        var views = isArray(route.controller) ? route.controller : [ route.controller ];
         var instances = [];
 
         for(var i = 0, length = views.length; i < length; i++) {
             var view = views[i];
-            instances[i] = isFunction$$1(view) ? new view() : Object.create(view);
+            instances[i] = isFunction(view) ? new view() : Object.create(view);
         }
 
         this.controller.show(route, instances);
