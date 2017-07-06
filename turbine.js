@@ -1,4 +1,4 @@
-/*! @nikrowell/turbine 0.5.0 */
+/*! @nikrowell/turbine 0.6.0 */
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
     typeof define === 'function' && define.amd ? define(factory) :
@@ -112,8 +112,8 @@
             var self = this;
 
             function listener() {
-                callback.apply(context, arguments);
                 self.off(name, listener);
+                callback.apply(context, arguments);
             }
 
             listener.ref = callback;
@@ -140,6 +140,11 @@
         },
 
         off: function off(name, callback) {
+
+            if(name === undefined) {
+                this.e = {};
+                return this;
+            }
 
             var e = this.e || (this.e = {});
             var listeners = e[name];
@@ -368,7 +373,7 @@
             value = null;
         } else if(value == 'undefined') {
             value = undefined;
-        } else if(isNaN(value) == false) {
+        } else if(isNaN(value) === false) {
             value = Number(value);
         }
 
