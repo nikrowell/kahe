@@ -13,8 +13,8 @@ export default {
         let self = this;
 
         function listener() {
-            callback.apply(context, arguments);
             self.off(name, listener);
+            callback.apply(context, arguments);
         }
 
         listener.ref = callback;
@@ -37,6 +37,11 @@ export default {
     },
 
     off(name, callback) {
+
+        if(name === undefined) {
+            this.e = {};
+            return this;
+        }
 
         let e = this.e || (this.e = {});
         let listeners = e[name];
