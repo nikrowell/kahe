@@ -2,10 +2,14 @@ const buble = require('rollup-plugin-buble');
 const pkg = require('./package.json');
 
 export default {
-    moduleName: 'turbine',
+    input: 'src/index.js',
+    output: {
+        name: 'turbine',
+        file: 'turbine.js',
+        format: 'umd',
+        sourcemap: true
+    },
     banner: `/*! ${pkg.name} ${pkg.version} */`,
-    entry: 'src/index.js',
-    format: 'umd',
     indent: true,
     plugins: [ buble() ]
 };
