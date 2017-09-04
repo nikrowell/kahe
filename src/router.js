@@ -40,7 +40,7 @@ class Router {
         const route = match.call(this, path);
 
         if(!route) return;
-        if(typeof route.controller === 'string') return this.go(route.controller);
+        if(typeof route.view === 'string') return this.go(route.view);
 
         window.history[options.replace ? 'replaceState' : 'pushState']({}, '', url);
 

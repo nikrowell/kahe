@@ -5,7 +5,7 @@
     (global.turbine = factory());
 }(this, (function () { 'use strict';
 
-    function extend$1(target) {
+    function extend(target) {
         var sources = [], len = arguments.length - 1;
         while ( len-- > 0 ) sources[ len ] = arguments[ len + 1 ];
 
@@ -26,76 +26,154 @@
         return target;
     }
 
-    var guid = (function() {
-        var counter = 0;
-        return function (prefix) {
-            if ( prefix === void 0 ) prefix = '';
 
-            var id = ++counter + '';
-            return prefix + id;
-        };
-    })();
 
-    function isArray$1(value) {
+    function isArray(value) {
         return Array.isArray(value);
     }
 
-    function isBoolean(value) {
-        return typeof value === 'boolean';
-    }
+
 
     function isDefined(value) {
         return value !== undefined;
     }
 
-    function isElement(value) {
-        return !!(value && value.nodeType === 1);
-    }
 
-    function isFunction$1(value) {
+
+    function isFunction(value) {
         return typeof value === 'function';
     }
 
-    function isNull(value) {
-        return value === null;
-    }
 
-    function isNumber(value) {
-        return typeof value === 'number';
-    }
 
-    function isObject(value) {
-        return typeof value === 'object';
-    }
 
-    function isString(value) {
-        return typeof value === 'string';
-    }
 
-    function isUndefined(value) {
-        return value === undefined;
-    }
+
+
+
+
+
 
     function noop() {
 
     }
 
+    var Mediator = function Mediator() {
+        var views = [], len = arguments.length;
+        while ( len-- ) views[ len ] = arguments[ len ];
 
-    var utils = Object.freeze({
-    	extend: extend$1,
-    	guid: guid,
-    	isArray: isArray$1,
-    	isBoolean: isBoolean,
-    	isDefined: isDefined,
-    	isElement: isElement,
-    	isFunction: isFunction$1,
-    	isNull: isNull,
-    	isNumber: isNumber,
-    	isObject: isObject,
-    	isString: isString,
-    	isUndefined: isUndefined,
-    	noop: noop
-    });
+        this.views = views;
+    };
+
+    Mediator.prototype.init = function init (req, done) {
+        this.execute('init', req, done);
+    };
+
+    Mediator.prototype.resize = function resize (w, h) {
+        this.views.forEach(function(view) {
+            isFunction(view.resize) && view.resize(w, h);
+        });
+    };
+
+    Mediator.prototype.animateIn = function animateIn (req, done) {
+        this.resize(window.innerWidth, window.innerHeight);
+        this.execute('animateIn', req, done);
+    };
+
+    Mediator.prototype.animateOut = function animateOut (req, done) {
+            var this$1 = this;
+
+        this.execute('animateOut', req, function () {
+            this$1.destroy(req, noop);
+            done();
+        });
+    };
+
+    Mediator.prototype.destroy = function destroy (req, done) {
+        this.execute('destroy', req, done);
+    };
+
+    Mediator.prototype.execute = function execute (method, req, done) {
+
+        var total = 0;
+        var count = 0;
+
+        this.views.forEach(function(view) {
+            isFunction(view[method]) && total++;
+        });
+
+        if(!total) {
+            done();
+            return;
+        }
+
+        function oneDone() {
+            if(++count === total) { done(); }
+        }
+
+        this.views.forEach(function(view) {
+            if(isFunction(view[method])) {
+                view[method].call(view, req, oneDone);
+            }
+        });
+    };
+
+    var Controller = function Controller(settings) {
+        this.overlap = isDefined(settings.overlap) ? settings.overlap : true;
+        this.current = null;
+        this.incoming = null;
+        this.outgoing = null;
+    };
+
+    Controller.prototype.resize = function resize (width, height) {
+        this.current.resize(width, height);
+    };
+
+    Controller.prototype.show = function show (request, views) {
+            var this$1 = this;
+
+
+        var incoming = new (Function.prototype.bind.apply( Mediator, [ null ].concat( views) ));
+        this.incoming = incoming;
+        this.outgoing = this.current;
+
+        incoming.init(request, function () { return this$1.swap(request); });
+    };
+
+    Controller.prototype.swap = function swap (request) {
+            var this$1 = this;
+
+
+        var incoming = this.incoming;
+        var outgoing = this.outgoing;
+
+        this.current = incoming;
+
+        var transitionComplete = function () {
+            this$1.incoming = null;
+        };
+
+        var transitionIn = function () {
+            incoming.animateIn(request, transitionComplete);
+        };
+
+        var transitionOut = function (next) {
+            outgoing.animateOut(request, next || noop);
+        };
+
+        if(!outgoing) {
+            transitionIn();
+            return;
+        }
+
+        if(this.overlap) {
+            transitionOut();
+            transitionIn();
+        } else {
+            var next = transitionIn;
+            transitionOut(next);
+        }
+    };
 
     var events = {
 
@@ -164,136 +242,19 @@
         }
     };
 
-    var Mediator = function Mediator() {
-        var views = [], len = arguments.length;
-        while ( len-- ) views[ len ] = arguments[ len ];
-
-        this.views = views;
-    };
-
-    Mediator.prototype.init = function init (req, done) {
-        this.execute('init', req, done);
-    };
-
-    Mediator.prototype.resize = function resize (w, h) {
-        this.views.forEach(function(view) {
-            isFunction$1(view.resize) && view.resize(w, h);
-        });
-    };
-
-    Mediator.prototype.animateIn = function animateIn (req, done) {
-        this.resize(window.innerWidth, window.innerHeight);
-        this.execute('animateIn', req, done);
-    };
-
-    Mediator.prototype.animateOut = function animateOut (req, done) {
-            var this$1 = this;
-
-        this.execute('animateOut', req, function () {
-            this$1.destroy(req, noop);
-            done();
-        });
-    };
-
-    Mediator.prototype.destroy = function destroy (req, done) {
-        this.execute('destroy', req, done);
-    };
-
-    Mediator.prototype.execute = function execute (method, req, done) {
-
-        var total = 0;
-        var count = 0;
-
-        this.views.forEach(function(view) {
-            isFunction$1(view[method]) && total++;
-        });
-
-        if(!total) {
-            done();
-            return;
-        }
-
-        function oneDone() {
-            if(++count === total) { done(); }
-        }
-
-        this.views.forEach(function(view) {
-            if(isFunction$1(view[method])) {
-                view[method].call(view, req, oneDone);
-            }
-        });
-    };
-
-    var Controller = function Controller(settings) {
-        this.overlap = isDefined(settings.overlap) ? settings.overlap : true;
-        this.current = null;
-        this.incoming = null;
-        this.outgoing = null;
-    };
-
-    Controller.prototype.resize = function resize (width, height) {
-        this.current.resize(width, height);
-    };
-
-    Controller.prototype.show = function show (request, views) {
-            var this$1 = this;
-
-
-        var incoming = new (Function.prototype.bind.apply( Mediator, [ null ].concat( views) ));
-        this.incoming = incoming;
-        this.outgoing = this.current;
-
-        incoming.init(request, function () { return this$1.swap(request); });
-    };
-
-    Controller.prototype.swap = function swap (request) {
-            var this$1 = this;
-
-
-        var incoming = this.incoming;
-        var outgoing = this.outgoing;
-
-        this.current = incoming;
-
-        var transitionComplete = function () {
-            this$1.incoming = null;
-        };
-
-        var transitionIn = function () {
-            incoming.animateIn(request, transitionComplete);
-        };
-
-        var transitionOut = function (next) {
-            outgoing.animateOut(request, next || noop);
-        };
-
-        if(!outgoing) {
-            transitionIn();
-            return;
-        }
-
-        if(this.overlap) {
-            transitionOut();
-            transitionIn();
-        } else {
-            var next = transitionIn;
-            transitionOut(next);
-        }
-    };
-
-    var reserved = /^(controller|hash|keys|params|path|query|regex|splats|url)$/;
+    var reserved = /^(view|hash|keys|params|path|query|regex|splats|url)$/;
 
     var Route = function Route(path, config) {
         var this$1 = this;
 
 
-        if(isArray$1(config)) {
-            config = { controller: config };
+        if(isArray(config)) {
+            config = { view: config };
         }
 
         this.keys = [];
         this.regex = toRegExp(path, this.keys);
-        this.controller = config.controller || config;
+        this.view = config.view || config;
 
         Object.keys(config).forEach(function (key) {
             if(!reserved.test(key)) {
@@ -324,7 +285,7 @@
             }
         });
 
-        var clone = extend$1({ path: path, params: params, splats: splats }, this);
+        var clone = extend({ path: path, params: params, splats: splats }, this);
         delete clone.keys;
         delete clone.regex;
 
@@ -420,7 +381,7 @@
         var route = match.call(this, path);
 
         if(!route) { return; }
-        if(typeof route.controller === 'string') { return this.go(route.controller); }
+        if(typeof route.view === 'string') { return this.go(route.view); }
 
         window.history[options.replace ? 'replaceState' : 'pushState']({}, '', url);
 
@@ -470,60 +431,41 @@
         this.go(el.href);
     }
 
-    extend$1(Router.prototype, events);
+    extend(Router.prototype, events);
 
-    var extend = extend$1;
-    var isArray = isArray$1;
-    var isFunction = isFunction$1;
+    var controller;
+    var router;
 
-    var Framework = function Framework(setup) {
-        this.setup = setup;
-        this.utils = utils;
-        extend(this, events);
+    var bootstrap = function (settings) {
+        if ( settings === void 0 ) settings = {};
+
+
+        controller = new Controller(settings);
+        router = new Router(settings);
+        router.on('route', update);
+
+        window.addEventListener('resize', resize);
+
+        if(settings.preloader) {
+
+            var start = router.start.bind(router);
+            var intro = settings.preloader.bind(null, start);
+            update({view: intro});
+
+        } else {
+            router.start();
+        }
     };
 
-    Framework.prototype.start = function start () {
-            var this$1 = this;
-
-
-        var bootstrap = function (settings) {
-                if ( settings === void 0 ) settings = {};
-
-
-            this$1.controller = new Controller(settings);
-            this$1.router = new Router(settings);
-            this$1.router.on('route', this$1.emit.bind(this$1, 'route'));
-            this$1.router.on('route', change.bind(this$1));
-
-            window.addEventListener('resize', this$1.resize.bind(this$1));
-
-            if(settings.intro) {
-                var start = this$1.router.start.bind(this$1.router);
-                var intro = settings.intro.bind(null, start);
-                change.call(this$1, {controller: intro});
-            } else {
-                this$1.router.start();
-            }
-        };
-
-        var settings = isFunction(this.setup) ? this.setup(bootstrap) : this.setup;
-        settings && bootstrap(settings);
-    };
-
-    Framework.prototype.resize = function resize () {
+    var resize = function () {
         var width = window.innerWidth;
         var height = window.innerHeight;
-        this.controller.resize(width, height);
-        this.emit('resize', { width: width, height: height });
+        controller.resize(width, height);
     };
 
-    Framework.prototype.go = function go (url) {
-        this.router.go(url);
-    };
+    var update = function (route) {
 
-    function change(route) {
-
-        var views = isArray(route.controller) ? route.controller : [ route.controller ];
+        var views = isArray(route.view) ? route.view : [route.view];
         var instances = [];
 
         for(var i = 0, length = views.length; i < length; i++) {
@@ -531,12 +473,24 @@
             instances[i] = isFunction(view) ? new view() : Object.create(view);
         }
 
-        this.controller.show(route, instances);
-    }
+        controller.show(route, instances);
+    };
 
     var index = function(init) {
-        var instance = new Framework(init);
-        return instance;
+
+        function go(url) {
+            router.go(url);
+        }
+
+        function run() {
+            var settings = isFunction(init) ? init(bootstrap) : init;
+            settings && bootstrap(settings);
+            this.run = noop;
+        }
+
+        var framework = { go: go, run: run };
+        extend(framework, events);
+        return framework;
     };
 
     return index;
