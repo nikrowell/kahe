@@ -4,8 +4,8 @@ const pkg = require('./package.json');
 export default {
     input: 'src/index.js',
     output: {
-        name: 'turbine',
-        file: 'turbine.js',
+        name: 'kahe',
+        file: 'kahe.js',
         format: 'umd',
         sourcemap: true
     },

@@ -1,18 +1,18 @@
 import Mediator from './mediator';
 import { isDefined, isFunction, noop } from './utils';
 
-class Controller {
+const controller = {
 
-    constructor(settings) {
+    init(settings) {
         this.overlap = isDefined(settings.overlap) ? settings.overlap : true;
         this.current = null;
         this.incoming = null;
         this.outgoing = null;
-    }
+    },
 
     resize(width, height) {
         this.current.resize(width, height);
-    }
+    },
 
     show(request, views) {
 
@@ -21,7 +21,7 @@ class Controller {
         this.outgoing = this.current;
 
         incoming.init(request, () => this.swap(request));
-    }
+    },
 
     swap(request) {
 
@@ -57,4 +57,5 @@ class Controller {
     }
 }
 
-export default Controller;
+let instance = Object.create(controller);
+export default instance;

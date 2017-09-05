@@ -1,9 +1,35 @@
 import test from 'tape';
-import turbine from '../src/index';
+import kahe from '../src/index';
 
-const framework = turbine();
+test('initialize with an object', function(t) {
+    // TODO
+    t.ok(kahe, 'kahe');
+    t.end();
+});
 
-test('initialize turbine', function(t) {
-    t.ok(turbine, 'turbine');
+test('initialize with a function', function(t) {
+    // TODO
+    t.ok(kahe, 'kahe');
+    t.end();
+});
+
+test('only api exposed', function(t) {
+
+    let api = [
+        'h',
+        'go',
+        'on',
+        'off',
+        'emit',
+        'run'
+    ];
+
+    let framework = kahe();
+
+    Object.keys(framework).forEach(key => {
+        api.includes(key) || t.fail(`${key} not in api`)
+    });
+
+    t.pass(`framework exposes ${api.join(', ')}`);
     t.end();
 });
