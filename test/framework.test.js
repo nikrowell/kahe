@@ -25,7 +25,11 @@ test('only api exposed', function(t) {
     ];
 
     let framework = turbine();
-    Object.keys(framework).forEach(key => api.includes(key) || t.fail(`${key} not in api`));
+
+    Object.keys(framework).forEach(key => {
+        api.includes(key) || t.fail(`${key} not in api`)
+    });
+
     t.pass(`framework exposes ${api.join(', ')}`);
     t.end();
 });
