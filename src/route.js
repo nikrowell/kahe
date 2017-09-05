@@ -1,18 +1,18 @@
 import { extend, isArray } from './utils';
 
-const reserved = /^(controller|hash|keys|params|path|query|regex|splats|url)$/;
+const reserved = /^(view|hash|keys|params|path|query|regex|splats|url)$/;
 
 class Route {
 
     constructor(path, config) {
 
         if(isArray(config)) {
-            config = { controller: config };
+            config = { view: config };
         }
 
         this.keys = [];
         this.regex = toRegExp(path, this.keys);
-        this.controller = config.controller || config;
+        this.view = config.view || config;
 
         Object.keys(config).forEach(key => {
             if(!reserved.test(key)) {
