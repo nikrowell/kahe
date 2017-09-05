@@ -7,7 +7,7 @@
   "main": "kahe.js",
   "repository": {
     "type": "git",
-    "url": "https://gitlab.com/nikrowell/kahe.git"
+    "url": "https://github.com/nikrowell/kahe.git"
   },
   "keywords": [
     "browser",
