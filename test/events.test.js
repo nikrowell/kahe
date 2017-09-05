@@ -3,16 +3,19 @@ import events from '../src/events';
 
 test('subscribe to an event', function(t) {
 
-    let emitter = Object.create(events);
-    emitter.on('test', function(){});
+    let emitter = events({});
 
-    t.equal(emitter.e.test.length, 1, 'subscribed to event');
-    t.end();
+    emitter.on('test', () => {
+        t.pass('subscribed to event')
+        t.end();
+    });
+
+    emitter.emit('test');
 });
 
 test('subscribe to an event with context', function(t) {
 
-    let emitter = Object.create(events);
+    let emitter = events({});
     let context = {foo: true};
 
     emitter.on('test', function() {
@@ -23,35 +26,9 @@ test('subscribe to an event with context', function(t) {
     emitter.emit('test');
 });
 
-test('subscribe to an event once', function(t) {
-
-    let emitter = Object.create(events);
-
-    emitter.once('test', function() {
-        t.notOk(emitter.e.test, 'removed event from list');
-        t.end();
-    });
-
-    emitter.emit('test');
-});
-
-test('subscribe to an event once with context', function(t) {
-
-    let emitter = Object.create(events);
-    let context = {foo: true};
-
-    emitter.once('test', function() {
-        t.notOk(emitter.e.test, 'removed event from list');
-        t.ok(this.foo, 'context set correctly');
-        t.end();
-    }, context);
-
-    emitter.emit('test');
-});
-
 test('emit an event', function(t) {
 
-    let emitter = Object.create(events);
+    let emitter = events({});
 
     emitter.on('test', function() {
         t.pass('event listener called');
@@ -63,7 +40,7 @@ test('emit an event', function(t) {
 
 test('emit an event with arguments', function(t) {
 
-    let emitter = Object.create(events);
+    let emitter = events({});
 
     emitter.on('test', function(obj, str) {
         t.ok(obj.name === 'foo', 'passed first argument');
@@ -76,7 +53,7 @@ test('emit an event with arguments', function(t) {
 
 test('unsubscribe from all events', function(t) {
 
-    let emitter = Object.create(events);
+    let emitter = events({});
 
     emitter.on('test', function() {
         t.fail('event handler called after unsubscribe');
@@ -90,7 +67,7 @@ test('unsubscribe from all events', function(t) {
 
 test('unsubscribe from all events with name', function(t) {
 
-    let emitter = Object.create(events);
+    let emitter = events({});
 
     emitter.on('a', function() {
         t.fail('event handler called after unsubscribe');
@@ -109,7 +86,7 @@ test('unsubscribe from all events with name', function(t) {
 
 test('unsubscribe from all events with name and callback', function(t) {
 
-    let emitter = Object.create(events);
+    let emitter = events({});
 
     function a() {
         t.fail('event handler called after unsubscribe');
@@ -121,40 +98,6 @@ test('unsubscribe from all events with name and callback', function(t) {
 
     emitter.on('test', a);
     emitter.on('test', b);
-    emitter.off('test', a);
-    emitter.emit('test');
-
-    t.end();
-});
-
-test('unsubscribe from an event subscribed with once', function(t) {
-
-    let emitter = Object.create(events);
-
-    emitter.once('test', function() {
-        t.fail('event handler called after unsubscribe');
-    });
-
-    emitter.off('test');
-    emitter.emit('test');
-
-    t.end();
-});
-
-test('unsubscribe from an event subscribed with once with name and callback', function(t) {
-
-    let emitter = Object.create(events);
-
-    function a() {
-        t.fail('event handler called after unsubscribe');
-    }
-
-    function b() {
-        t.pass('other event handlers remain subscribed');
-    }
-
-    emitter.once('test', a);
-    emitter.once('test', b);
     emitter.off('test', a);
     emitter.emit('test');
 

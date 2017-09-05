@@ -1,15 +1,13 @@
-import Controller from './controller';
-import Router from './router';
+import controller from './controller';
+import router from './router';
 import events from './events';
+import h from './hyperscript';
 import { extend, isArray, isFunction, noop } from './utils';
-
-let controller;
-let router;
 
 const bootstrap = (settings = {}) => {
 
-    controller = new Controller(settings);
-    router = new Router(settings);
+    controller.init(settings);
+    router.init(settings);
     router.on('route', update);
 
     window.addEventListener('resize', (event) => {
@@ -18,7 +16,7 @@ const bootstrap = (settings = {}) => {
         controller.resize(width, height);
     });
 
-    if(settings.preloader) {
+    if(isFunction(settings.preloader)) {
 
         let start = router.start.bind(router);
         let intro = settings.preloader.bind(null, start);
@@ -54,7 +52,6 @@ export default function(init) {
         this.run = noop;
     }
 
-    const framework = { go, run };
-    extend(framework, events);
-    return framework;
+    const framework = { h, go, run };
+    return events(framework);
 };

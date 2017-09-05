@@ -1,62 +1,48 @@
-export default {
+import { extend, isUndefined } from './utils';
 
-    on(name, callback, context) {
+export default function(target) {
 
-        let e = this.e || (this.e = {});
-        (e[name] || (e[name] = [])).push({ callback, context });
+    let events = {};
 
-        return this;
-    },
+    return extend(target, {
 
-    once(name, callback, context) {
-
-        let self = this;
-
-        function listener() {
-            self.off(name, listener);
-            callback.apply(context, arguments);
-        }
-
-        listener.ref = callback;
-        this.on(name, listener, context);
-
-        return this;
-    },
-
-    emit(name, ...data) {
-
-        let e = this.e || (this.e = {});
-        let listeners = e[name] || [];
-
-        for(let i = 0, length = listeners.length; i < length; i++) {
-            let context = listeners[i].context || this;
-            listeners[i].callback.apply(context, data);
-        }
-
-        return this;
-    },
-
-    off(name, callback) {
-
-        if(name === undefined) {
-            this.e = {};
+        on(name, callback, context) {
+            (events[name] || (events[name] = [])).push({ callback, context });
             return this;
-        }
+        },
 
-        let e = this.e || (this.e = {});
-        let listeners = e[name];
-        let events = [];
+        off(name, callback) {
 
-        if(listeners && callback) {
-            for(let i = 0, length = listeners.length; i < length; i++) {
-                if(listeners[i].callback !== callback && listeners[i].callback.ref !== callback) {
-                    events.push(listeners[i]);
+            if(isUndefined(name)) {
+                events = {};
+                return this;
+            }
+
+            let listeners = events[name];
+            let active = [];
+
+            if(listeners && callback) {
+                for(let i = 0, length = listeners.length; i < length; i++) {
+                    if(listeners[i].callback !== callback && listeners[i].callback.ref !== callback) {
+                        active.push(listeners[i]);
+                    }
                 }
             }
+
+            (active.length) ? events[name] = active : delete events[name];
+            return this;
+        },
+
+        emit(name, ...data) {
+
+            let listeners = events[name] || [];
+
+            for(let i = 0, length = listeners.length; i < length; i++) {
+                let context = listeners[i].context || this;
+                listeners[i].callback.apply(context, data);
+            }
+
+            return this;
         }
-
-        (events.length) ? e[name] = events : delete e[name];
-
-        return this;
-    }
+    });
 };

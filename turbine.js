@@ -1,499 +1,565 @@
 /*! @nikrowell/turbine 0.6.0 */
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-    typeof define === 'function' && define.amd ? define(factory) :
-    (global.turbine = factory());
+	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+	typeof define === 'function' && define.amd ? define(factory) :
+	(global.turbine = factory());
 }(this, (function () { 'use strict';
 
-    function extend(target) {
-        var sources = [], len = arguments.length - 1;
-        while ( len-- > 0 ) sources[ len ] = arguments[ len + 1 ];
+	function extend(target) {
+	    var sources = [], len = arguments.length - 1;
+	    while ( len-- > 0 ) sources[ len ] = arguments[ len + 1 ];
 
 
-        if(Object.assign) {
-            return Object.assign.apply(Object, [ target ].concat( sources ));
-        }
+	    if(Object.assign) {
+	        return Object.assign.apply(Object, [ target ].concat( sources ));
+	    }
 
-        sources.forEach(function (source) {
-            if(!source) { return; }
-            Object.keys(source).forEach(function (value, key) {
-                if(source.hasOwnProperty(key)) {
-                    target[key] = value;
-                }
-            });
-        });
+	    sources.forEach(function (source) {
+	        if(!source) { return; }
+	        Object.keys(source).forEach(function (value, key) {
+	            if(source.hasOwnProperty(key)) {
+	                target[key] = value;
+	            }
+	        });
+	    });
 
-        return target;
-    }
+	    return target;
+	}
 
 
 
-    function isArray(value) {
-        return Array.isArray(value);
-    }
+	function isArray(value) {
+	    return Array.isArray(value);
+	}
 
 
 
-    function isDefined(value) {
-        return value !== undefined;
-    }
+	function isDefined(value) {
+	    return value !== undefined;
+	}
 
 
 
-    function isFunction(value) {
-        return typeof value === 'function';
-    }
+	function isFunction(value) {
+	    return typeof value === 'function';
+	}
 
 
 
 
 
+	function isObject(value) {
+	    return typeof value === 'object';
+	}
 
+	function isString(value) {
+	    return typeof value === 'string';
+	}
 
+	function isUndefined(value) {
+	    return value === undefined;
+	}
 
+	function noop() {
 
+	}
 
+	var Mediator = function Mediator() {
+	    var views = [], len = arguments.length;
+	    while ( len-- ) views[ len ] = arguments[ len ];
 
-    function noop() {
+	    this.views = views;
+	};
 
-    }
+	Mediator.prototype.init = function init (req, done) {
+	    this.execute('init', req, done);
+	};
 
-    var Mediator = function Mediator() {
-        var views = [], len = arguments.length;
-        while ( len-- ) views[ len ] = arguments[ len ];
+	Mediator.prototype.resize = function resize (w, h) {
+	    this.views.forEach(function(view) {
+	        isFunction(view.resize) && view.resize(w, h);
+	    });
+	};
 
-        this.views = views;
-    };
+	Mediator.prototype.animateIn = function animateIn (req, done) {
+	    this.resize(window.innerWidth, window.innerHeight);
+	    this.execute('animateIn', req, done);
+	};
 
-    Mediator.prototype.init = function init (req, done) {
-        this.execute('init', req, done);
-    };
+	Mediator.prototype.animateOut = function animateOut (req, done) {
+	        var this$1 = this;
 
-    Mediator.prototype.resize = function resize (w, h) {
-        this.views.forEach(function(view) {
-            isFunction(view.resize) && view.resize(w, h);
-        });
-    };
+	    this.execute('animateOut', req, function () {
+	        this$1.destroy(req, noop);
+	        done();
+	    });
+	};
 
-    Mediator.prototype.animateIn = function animateIn (req, done) {
-        this.resize(window.innerWidth, window.innerHeight);
-        this.execute('animateIn', req, done);
-    };
+	Mediator.prototype.destroy = function destroy (req, done) {
+	    this.execute('destroy', req, done);
+	};
 
-    Mediator.prototype.animateOut = function animateOut (req, done) {
-            var this$1 = this;
+	Mediator.prototype.execute = function execute (method, req, done) {
 
-        this.execute('animateOut', req, function () {
-            this$1.destroy(req, noop);
-            done();
-        });
-    };
+	    var total = 0;
+	    var count = 0;
 
-    Mediator.prototype.destroy = function destroy (req, done) {
-        this.execute('destroy', req, done);
-    };
+	    this.views.forEach(function(view) {
+	        isFunction(view[method]) && total++;
+	    });
 
-    Mediator.prototype.execute = function execute (method, req, done) {
+	    if(!total) {
+	        done();
+	        return;
+	    }
 
-        var total = 0;
-        var count = 0;
+	    function oneDone() {
+	        if(++count === total) { done(); }
+	    }
 
-        this.views.forEach(function(view) {
-            isFunction(view[method]) && total++;
-        });
+	    this.views.forEach(function(view) {
+	        if(isFunction(view[method])) {
+	            view[method].call(view, req, oneDone);
+	        }
+	    });
+	};
 
-        if(!total) {
-            done();
-            return;
-        }
+	var controller = {
 
-        function oneDone() {
-            if(++count === total) { done(); }
-        }
+	    init: function init(settings) {
+	        this.overlap = isDefined(settings.overlap) ? settings.overlap : true;
+	        this.current = null;
+	        this.incoming = null;
+	        this.outgoing = null;
+	    },
 
-        this.views.forEach(function(view) {
-            if(isFunction(view[method])) {
-                view[method].call(view, req, oneDone);
-            }
-        });
-    };
+	    resize: function resize(width, height) {
+	        this.current.resize(width, height);
+	    },
 
-    var Controller = function Controller(settings) {
-        this.overlap = isDefined(settings.overlap) ? settings.overlap : true;
-        this.current = null;
-        this.incoming = null;
-        this.outgoing = null;
-    };
+	    show: function show(request, views) {
+	        var this$1 = this;
 
-    Controller.prototype.resize = function resize (width, height) {
-        this.current.resize(width, height);
-    };
 
-    Controller.prototype.show = function show (request, views) {
-            var this$1 = this;
+	        var incoming = new (Function.prototype.bind.apply( Mediator, [ null ].concat( views) ));
+	        this.incoming = incoming;
+	        this.outgoing = this.current;
 
+	        incoming.init(request, function () { return this$1.swap(request); });
+	    },
 
-        var incoming = new (Function.prototype.bind.apply( Mediator, [ null ].concat( views) ));
-        this.incoming = incoming;
-        this.outgoing = this.current;
+	    swap: function swap(request) {
+	        var this$1 = this;
 
-        incoming.init(request, function () { return this$1.swap(request); });
-    };
 
-    Controller.prototype.swap = function swap (request) {
-            var this$1 = this;
+	        var incoming = this.incoming;
+	        var outgoing = this.outgoing;
 
+	        this.current = incoming;
 
-        var incoming = this.incoming;
-        var outgoing = this.outgoing;
+	        var transitionComplete = function () {
+	            this$1.incoming = null;
+	        };
 
-        this.current = incoming;
+	        var transitionIn = function () {
+	            incoming.animateIn(request, transitionComplete);
+	        };
 
-        var transitionComplete = function () {
-            this$1.incoming = null;
-        };
+	        var transitionOut = function (next) {
+	            outgoing.animateOut(request, next || noop);
+	        };
 
-        var transitionIn = function () {
-            incoming.animateIn(request, transitionComplete);
-        };
+	        if(!outgoing) {
+	            transitionIn();
+	            return;
+	        }
 
-        var transitionOut = function (next) {
-            outgoing.animateOut(request, next || noop);
-        };
+	        if(this.overlap) {
+	            transitionOut();
+	            transitionIn();
+	        } else {
+	            var next = transitionIn;
+	            transitionOut(next);
+	        }
+	    }
+	};
 
-        if(!outgoing) {
-            transitionIn();
-            return;
-        }
+	var instance = Object.create(controller);
 
-        if(this.overlap) {
-            transitionOut();
-            transitionIn();
-        } else {
-            var next = transitionIn;
-            transitionOut(next);
-        }
-    };
+	var events = function(target) {
 
-    var events = {
+	    var events = {};
 
-        on: function on(name, callback, context) {
+	    return extend(target, {
 
-            var e = this.e || (this.e = {});
-            (e[name] || (e[name] = [])).push({ callback: callback, context: context });
+	        on: function on(name, callback, context) {
+	            (events[name] || (events[name] = [])).push({ callback: callback, context: context });
+	            return this;
+	        },
 
-            return this;
-        },
+	        off: function off(name, callback) {
 
-        once: function once(name, callback, context) {
+	            if(isUndefined(name)) {
+	                events = {};
+	                return this;
+	            }
 
-            var self = this;
+	            var listeners = events[name];
+	            var active = [];
 
-            function listener() {
-                self.off(name, listener);
-                callback.apply(context, arguments);
-            }
+	            if(listeners && callback) {
+	                for(var i = 0, length = listeners.length; i < length; i++) {
+	                    if(listeners[i].callback !== callback && listeners[i].callback.ref !== callback) {
+	                        active.push(listeners[i]);
+	                    }
+	                }
+	            }
 
-            listener.ref = callback;
-            this.on(name, listener, context);
+	            (active.length) ? events[name] = active : delete events[name];
+	            return this;
+	        },
 
-            return this;
-        },
+	        emit: function emit(name) {
+	            var this$1 = this;
+	            var data = [], len = arguments.length - 1;
+	            while ( len-- > 0 ) data[ len ] = arguments[ len + 1 ];
 
-        emit: function emit(name) {
-            var this$1 = this;
-            var data = [], len = arguments.length - 1;
-            while ( len-- > 0 ) data[ len ] = arguments[ len + 1 ];
 
+	            var listeners = events[name] || [];
 
-            var e = this.e || (this.e = {});
-            var listeners = e[name] || [];
+	            for(var i = 0, length = listeners.length; i < length; i++) {
+	                var context = listeners[i].context || this$1;
+	                listeners[i].callback.apply(context, data);
+	            }
 
-            for(var i = 0, length = listeners.length; i < length; i++) {
-                var context = listeners[i].context || this$1;
-                listeners[i].callback.apply(context, data);
-            }
+	            return this;
+	        }
+	    });
+	};
 
-            return this;
-        },
+	var reserved = /^(view|hash|keys|params|path|query|regex|splats|url)$/;
 
-        off: function off(name, callback) {
+	var Route = function Route(path, config) {
+	    var this$1 = this;
 
-            if(name === undefined) {
-                this.e = {};
-                return this;
-            }
 
-            var e = this.e || (this.e = {});
-            var listeners = e[name];
-            var events = [];
+	    if(isArray(config)) {
+	        config = { view: config };
+	    }
 
-            if(listeners && callback) {
-                for(var i = 0, length = listeners.length; i < length; i++) {
-                    if(listeners[i].callback !== callback && listeners[i].callback.ref !== callback) {
-                        events.push(listeners[i]);
-                    }
-                }
-            }
+	    this.keys = [];
+	    this.regex = toRegExp(path, this.keys);
+	    this.view = config.view || config;
 
-            (events.length) ? e[name] = events : delete e[name];
+	    Object.keys(config).forEach(function (key) {
+	        if(!reserved.test(key)) {
+	            this$1[key] = config[key];
+	        }
+	    });
+	};
 
-            return this;
-        }
-    };
+	Route.prototype.match = function match (path) {
+	        var this$1 = this;
 
-    var reserved = /^(view|hash|keys|params|path|query|regex|splats|url)$/;
 
-    var Route = function Route(path, config) {
-        var this$1 = this;
+	    var captures = path.match(this.regex);
+	    if(!captures) { return false; }
 
+	    var params = {};
+	    var splats = [];
 
-        if(isArray(config)) {
-            config = { view: config };
-        }
+	    captures.forEach(function (item, i) {
 
-        this.keys = [];
-        this.regex = toRegExp(path, this.keys);
-        this.view = config.view || config;
+	        var key = this$1.keys[i];
+	        var value = decodeURIComponent(captures[i + 1]);
 
-        Object.keys(config).forEach(function (key) {
-            if(!reserved.test(key)) {
-                this$1[key] = config[key];
-            }
-        });
-    };
+	        if(key) {
+	            params[key] = convert(value);
+	        } else if(value !== 'undefined') {
+	            splats.push(value);
+	        }
+	    });
 
-    Route.prototype.match = function match (path) {
-            var this$1 = this;
+	    var clone = extend({ path: path, params: params, splats: splats }, this);
+	    delete clone.keys;
+	    delete clone.regex;
 
+	    return clone;
+	};
 
-        var captures = path.match(this.regex);
-        if(!captures) { return false; }
+	function toRegExp(path, keys) {
 
-        var params = {};
-        var splats = [];
+	    if(path[0] != '/') { path = '/' + path; }
 
-        captures.forEach(function (item, i) {
+	    path = path
+	        .concat('/?')
+	        .replace(/\/\(/g, '(?:/')
+	        .replace(/(\/)?(\.)?:(\w+)(?:(\(.*?\)))?(\?)?|\*/g, function(match, slash, format, key, capture, optional) {
 
-            var key = this$1.keys[i];
-            var value = decodeURIComponent(captures[i + 1]);
+	            if(match === '*') {
+	                keys.push(undefined);
+	                return match;
+	            }
 
-            if(key) {
-                params[key] = convert(value);
-            } else if(value !== 'undefined') {
-                splats.push(value);
-            }
-        });
+	            keys.push(key);
+	            slash = slash || '';
 
-        var clone = extend({ path: path, params: params, splats: splats }, this);
-        delete clone.keys;
-        delete clone.regex;
+	            return ''
+	                + (optional ? '' : slash)
+	                + '(?:'
+	                + (optional ? slash : '')
+	                + (format || '')
+	                + (capture || '([^/]+?)')
+	                + ')'
+	                + (optional || '');
+	        })
+	        .replace(/([\/.])/g, '\\$1')
+	        .replace(/\*/g, '(.*)');
 
-        return clone;
-    };
+	    return new RegExp('^' + path + '$', 'i');
+	}
 
-    function toRegExp(path, keys) {
+	function convert(value) {
 
-        if(path[0] != '/') { path = '/' + path; }
+	    if(value == 'true') {
+	        value = true;
+	    } else if(value == 'false') {
+	        value = false;
+	    } else if(value == 'null') {
+	        value = null;
+	    } else if(value == 'undefined') {
+	        value = undefined;
+	    } else if(isNaN(value) === false) {
+	        value = Number(value);
+	    }
 
-        path = path
-            .concat('/?')
-            .replace(/\/\(/g, '(?:/')
-            .replace(/(\/)?(\.)?:(\w+)(?:(\(.*?\)))?(\?)?|\*/g, function(match, slash, format, key, capture, optional) {
+	    return value;
+	}
 
-                if(match === '*') {
-                    keys.push(undefined);
-                    return match;
-                }
+	function match(path) {
+	    var this$1 = this;
 
-                keys.push(key);
-                slash = slash || '';
 
-                return ''
-                    + (optional ? '' : slash)
-                    + '(?:'
-                    + (optional ? slash : '')
-                    + (format || '')
-                    + (capture || '([^/]+?)')
-                    + ')'
-                    + (optional || '');
-            })
-            .replace(/([\/.])/g, '\\$1')
-            .replace(/\*/g, '(.*)');
+	    var route = null;
 
-        return new RegExp('^' + path + '$', 'i');
-    }
+	    for(var i = 0, len = this.routes.length; i < len; i++) {
+	        route = this$1.routes[i].match(path);
+	        if(route) { break; }
+	    }
 
-    function convert(value) {
+	    return route;
+	}
 
-        if(value == 'true') {
-            value = true;
-        } else if(value == 'false') {
-            value = false;
-        } else if(value == 'null') {
-            value = null;
-        } else if(value == 'undefined') {
-            value = undefined;
-        } else if(isNaN(value) === false) {
-            value = Number(value);
-        }
+	function onpopstate(event) {
+	    var href = window.location.href;
+	    this.go(href, {replace: true});
+	}
 
-        return value;
-    }
+	function onclick(event) {
 
-    var Router = function Router(settings) {
-        var this$1 = this;
+	    event || (event = window.event);
+	    var el = event.target;
 
+	    if( event.defaultPrevented ||
+	        event.ctrlKey ||
+	        event.metaKey ||
+	        event.shiftKey ||
+	        event.button !== 0) { return; }
 
-        this.base = window.location.protocol + '//' + window.location.host + (settings.base || '/');
-        this.routes = [];
-        this.resolved = null;
+	    while(el && el.nodeName != 'A') { el = el.parentNode; }
+	    if(!el || !el.href) { return; }
 
-        var routes = settings.routes || {};
+	    if( el.target ||
+	        el.href.indexOf(this.base) == -1 ||
+	        el.getAttribute('rel') == 'external' ||
+	        el.hasAttribute('download')) { return; }
 
-        if(!routes['*']) {
-            routes['*'] = (routes['/']) ? '/' : noop;
-        }
+	    event.preventDefault();
+	    this.go(el.href);
+	}
 
-        Object.keys(routes).forEach(function (path) {
-            var config = routes[path];
-            var route = new Route(path, config);
-            this$1.routes.push(route);
-        });
-    };
+	var router = {
 
-    Router.prototype.start = function start () {
-        window.addEventListener('popstate', onpopstate.bind(this));
-        document.addEventListener('click', onclick.bind(this));
-        this.go(window.location.href, {replace: true});
-    };
+	    init: function init(settings) {
+	        var this$1 = this;
 
-    Router.prototype.go = function go (url, options) {
-            if ( options === void 0 ) options = {};
 
+	        this.base = window.location.protocol + '//' + window.location.host + (settings.base || '/');
+	        this.routes = [];
+	        this.resolved = null;
 
-        url = url.replace(this.base, '');
-        if(url.charAt(0) !== '/') { url = '/' + url; }
+	        var routes = settings.routes || {};
 
-        var path = url.split(/[?#]/)[0];
-        if(path == this.resolved) { return; }
+	        if(!routes['*']) {
+	            routes['*'] = (routes['/']) ? '/' : noop;
+	        }
 
-        var route = match.call(this, path);
+	        Object.keys(routes).forEach(function (path) {
+	            var config = routes[path];
+	            var route = new Route(path, config);
+	            this$1.routes.push(route);
+	        });
+	    },
+
+	    start: function start() {
+	        window.addEventListener('popstate', onpopstate.bind(this));
+	        document.addEventListener('click', onclick.bind(this));
+	        this.go(window.location.href, {replace: true});
+	    },
+
+	    go: function go(url, options) {
+	        if ( options === void 0 ) options = {};
 
-        if(!route) { return; }
-        if(typeof route.view === 'string') { return this.go(route.view); }
 
-        window.history[options.replace ? 'replaceState' : 'pushState']({}, '', url);
+	        url = url.replace(this.base, '');
+	        if(url.charAt(0) !== '/') { url = '/' + url; }
 
-        this.resolved = path;
-        this.emit('route', route);
-    };
+	        var path = url.split(/[?#]/)[0];
+	        if(path == this.resolved) { return; }
 
-    function match(path) {
-        var this$1 = this;
+	        var route = match.call(this, path);
+
+	        if(!route) { return; }
+	        if(typeof route.view === 'string') { return this.go(route.view); }
 
+	        window.history[options.replace ? 'replaceState' : 'pushState']({}, '', url);
 
-        var route = null;
+	        this.resolved = path;
+	        this.emit('route', route);
+	    }
+	};
 
-        for(var i = 0, len = this.routes.length; i < len; i++) {
-            route = this$1.routes[i].match(path);
-            if(route) { break; }
-        }
+	var instance$1 = Object.create(router);
+	var router$1 = events(instance$1);
 
-        return route;
-    }
+	var parseTag = /(?:(^|#|\.)([^#\.\[\]]+))|(\[.+?\])/g;
+	var parseAttr = /\[(.+?)(?:=("|'|)(.*?)\2)?\]/;
 
-    function onpopstate(event) {
-        var href = window.location.href;
-        this.go(href, {replace: true});
-    }
+	var h = function(tag, options) {
 
-    function onclick(event) {
+		var attrs = isObject(options) ? options : {},
+			children = (arguments.length == 3) ? arguments[2] : options,
+			node = {tag: 'div', attrs: {}},
+			classes = [],
+			element,
+			match,
+			key;
 
-        event || (event = window.event);
-        var el = event.target;
+		while(match = parseTag.exec(tag)) {
 
-        if( event.defaultPrevented ||
-            event.ctrlKey ||
-            event.metaKey ||
-            event.shiftKey ||
-            event.button !== 0) { return; }
+			if(match[1] === '' && match[2]) {
+				node.tag = match[2];
+			} else if(match[1] === '#') {
+				node.attrs.id = match[2];
+			} else if(match[1] === '.') {
+				classes.push(match[2]);
+			} else if(match[3][0] === '[') {
+				var pair = parseAttr.exec(match[3]);
+				if(pair[1] === 'class') {
+					classes.push(pair[3]);
+				} else {
+					node.attrs[pair[1]] = pair[3] || (pair[2] ? '' : true);
+				}
+			}
+		}
 
-        while(el && el.nodeName != 'A') { el = el.parentNode; }
-        if(!el || !el.href) { return; }
+		for(key in attrs) {
+			if(attrs.hasOwnProperty(key)) {
+				if(key == 'class') {
+					classes.push(attrs[key]);
+				} else {
+					node.attrs[key] = attrs[key];
+				}
+			}
+		}
 
-        if( el.target ||
-            el.href.indexOf(this.base) == -1 ||
-            el.getAttribute('rel') == 'external' ||
-            el.hasAttribute('download')) { return; }
+		element = document.createElement(node.tag);
+		attrs = node.attrs;
 
-        event.preventDefault();
-        this.go(el.href);
-    }
+		for(key in attrs) {
+			if(attrs.hasOwnProperty(key)) {
+				if(key == 'class') {
+					classes.push(attrs[key]);
+				} else if(key == 'style') {
+					element.style.cssText = attrs[key];
+				} else if(key == 'styles') {
+					// TODO
+				} else {
+					element[key] = attrs[key];
+				}
+			}
+		}
 
-    extend(Router.prototype, events);
+		if(classes.length) {
+			element.className = classes.join(' ');
+		}
 
-    var controller;
-    var router;
+		if(isString(children)) {
+			element.textContent = children;
+		} else if(isArray(children)) {
+			for(var i = 0, n = children.length; i < n; i++) {
+				element.appendChild(children[i]);
+			}
+		}
 
-    var bootstrap = function (settings) {
-        if ( settings === void 0 ) settings = {};
+		return element;
+	};
 
+	var bootstrap = function (settings) {
+	    if ( settings === void 0 ) settings = {};
 
-        controller = new Controller(settings);
-        router = new Router(settings);
-        router.on('route', update);
 
-        window.addEventListener('resize', resize);
+	    instance.init(settings);
+	    router$1.init(settings);
+	    router$1.on('route', update);
 
-        if(settings.preloader) {
+	    window.addEventListener('resize', function (event) {
+	        var width = window.innerWidth;
+	        var height = window.innerHeight;
+	        instance.resize(width, height);
+	    });
 
-            var start = router.start.bind(router);
-            var intro = settings.preloader.bind(null, start);
-            update({view: intro});
+	    if(isFunction(settings.preloader)) {
 
-        } else {
-            router.start();
-        }
-    };
+	        var start = router$1.start.bind(router$1);
+	        var intro = settings.preloader.bind(null, start);
+	        update({view: intro});
 
-    var resize = function () {
-        var width = window.innerWidth;
-        var height = window.innerHeight;
-        controller.resize(width, height);
-    };
+	    } else {
+	        router$1.start();
+	    }
+	};
 
-    var update = function (route) {
+	var update = function (route) {
 
-        var views = isArray(route.view) ? route.view : [route.view];
-        var instances = [];
+	    var views = isArray(route.view) ? route.view : [route.view];
+	    var instances = [];
 
-        for(var i = 0, length = views.length; i < length; i++) {
-            var view = views[i];
-            instances[i] = isFunction(view) ? new view() : Object.create(view);
-        }
+	    for(var i = 0, length = views.length; i < length; i++) {
+	        var view = views[i];
+	        instances[i] = isFunction(view) ? new view() : Object.create(view);
+	    }
 
-        controller.show(route, instances);
-    };
+	    instance.show(route, instances);
+	};
 
-    var index = function(init) {
+	var index = function(init) {
 
-        function go(url) {
-            router.go(url);
-        }
+	    function go(url) {
+	        router$1.go(url);
+	    }
 
-        function run() {
-            var settings = isFunction(init) ? init(bootstrap) : init;
-            settings && bootstrap(settings);
-            this.run = noop;
-        }
+	    function run() {
+	        var settings = isFunction(init) ? init(bootstrap) : init;
+	        settings && bootstrap(settings);
+	        this.run = noop;
+	    }
 
-        var framework = { go: go, run: run };
-        extend(framework, events);
-        return framework;
-    };
+	    var framework = { h: h, go: go, run: run };
+	    return events(framework);
+	};
 
-    return index;
+	return index;
 
 })));
 //# sourceMappingURL=turbine.js.map
