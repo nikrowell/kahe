@@ -1,8 +1,8 @@
 # kahe
 
-kahe is a 2.5k HTML5 pushState and hyperscript framework built on ideas from [bigwheel](https://github.com/bigwheel-framework/bigwheel), [page.js](https://visionmedia.github.io/page.js/) and [vue-router](http://router.vuejs.org/). 
+kahe (k&#257;'-he) is a 2.5k HTML5 pushState and hyperscript framework built on ideas from [bigwheel](https://github.com/bigwheel-framework/bigwheel), [page.js](https://visionmedia.github.io/page.js/) and [vue-router](http://router.vuejs.org/). 
 
-Rather than focusing on reactive interfaces, kahe's emphasis is on creating animated transitions between application states. Routes are mapped to a view function (or multiple view functions), which support several lifecyle methods and are responsible for all rendering logic with the provided request data. The framework exposes a minimal API that includes `on`, `off` and `emit` for event handling, a `route` method for transition hooks and an `h` method for generating markup via hyperscript ("hyper~~text~~" + "java~~script~~").
+Rather than focusing on reactive interfaces, kahe's emphasis is on creating animated transitions between application states. Routes are mapped to a view function (or multiple view functions), which support several lifecyle methods and are responsible for all rendering logic with the provided request data. The framework exposes a minimal API that includes `on`, `off` and `emit` for event handling, (~~a `route` method for transition hooks~~ coming soon) and an `h` method for generating markup via hyperscript ("hyper~~text~~" + "java~~script~~").
 
 **Why kahe?** Because it's the Hawaiian word for _flow_. And because nearly everything else is taken.
 
@@ -10,50 +10,18 @@ Rather than focusing on reactive interfaces, kahe's emphasis is on creating anim
 
 ## Installation
 
-Install through [npm](https://www.npmjs.com/package/turbine) or use as a standalone library with a script tag and one of the bundled files.
+Install through [npm](https://www.npmjs.com/package/kahe) or use as a standalone library with a script tag and one of the bundled files.
 
 `npm install --save kahe`
 
 ## Usage
 
-In order to prevent circular dependencies, where your **app** initialization defines routes, and routes may also depend on the **app* instance, it's best to define routes (or all configuration settings) in a sepatate file.
-
-_app.js_
-
-```javascript
-import kahe from 'kahe';
-import config from './config';
-
-const app = kahe(config);
-export default app;
-```
+In order to prevent circular dependencies where your **app** initialization defines routes, and routes may also depend on the **app* instance, it's best to define routes configuration settings in a sepatate file:
 
 _config.js_
 
 ```javascript
-import { 
-    Home, 
-    About, 
-    WorkNav, 
-    WorkHeader, 
-    WorkDetails,
-    Preloader } from './views';
-
-const routes = {
-    '/': Home,
-    'about': {
-        name: 'about',
-        view: About
-    },
-    '/work/:id': [
-        WorkNav,
-        WorkHeader,
-        WorkDetails
-    ],
-    '/redirect': '/'
-};
-
-import { Home, About, Work } from './views';
+import { Home, About, Work, Preloader } from './views';
 
 const routes = {
     '/': Home,
@@ -69,21 +37,40 @@ export default {
 };
 ```
 
+_app.js_
+
+```javascript
+import kahe from 'kahe';
+import config from './config';
+
+const app = kahe(config);
+export default app;
+```
+
+_index.js_
+
+```javascript
+import app from './app';
+
+// any other setup work or dom ready handlers
+
+app.run();
+```
+
 ### Options
 
 Property        | Default | Description
---------------- | ------- | -----------
-**`base`**      | `/`     |
-**`routes`**    | `{}`    |
+--------------- | ------- | -----------------------------------------
+**`base`**      | `/`     | 
+Base URL to use when resolving routes.
+**`routes`**    | `{}`    | 
+Routes object with keys as URL patterns and values as view function(s) and additional route meta data.
 **`preloader`** | `null`  |
+Initial view to show regardless of the requested route. This view must be a function that accepts a `done` callback. Once `done` is called, routes will begin resolving as normal.
 **`overlap`**   | `true`  |
+Whether or not to sycnronize route transitions. If `false`, incoming routes will only start after all outgoing transitions have finished.
 
 ### Routes
-
-'/'
-'about'
-'/work/:slug'
-'/account/:id/assets/*'
 
 ### Views
 
@@ -92,47 +79,12 @@ Views are functions or objects that optionally implement the following lifescyle
 - init
 - animateIn
 - resize
-- update
 - animateOut
 - destroy
 
 Each method receives two arguments: `req` and `done`. `req` is an object representing request data, including captured url params for the incoming route and the view function(s) being executed. 
 
 ### Transitions
-
-Transitions manage the flow between application states. Inspired by the once popular [Gaia Framework](https://github.com/stevensacks/Gaia-Framework/wiki/The-gaia-flow) for Flash, transitions come in four types:
-
-- Normal
-- Reverse
-- Preload
-- Parallel
-
-```javascript
-
-app.route(function(transition) {
-    transition.next();
-});
-
-app.route(function({ from, to, type, next }) {
-    next();
-});
-
-app.route('/about', function(transition) {
-    from // readonly outgoing route data)
-    to // readonly incoming route data)
-    type // transition type, get or set
-    transition.next() // call next step in transition sequence
-    transition.next(false) // aborts current transition, state does not change
-    transition.next('/login') // redirects
-});
-app.hook('/about', function() {
-
-});
-app.before('/about', function() {
-
-});
-
-```
 
 ### Events
 
@@ -183,7 +135,3 @@ npm install -g budo
 npm install
 npm run test
 ```
-
-## Releases
-
-* *0.6.0* - 

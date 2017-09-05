@@ -2,7 +2,7 @@ import controller from './controller';
 import router from './router';
 import events from './events';
 import h from './hyperscript';
-import { extend, isArray, isFunction, noop } from './utils';
+import { isArray, isFunction, noop } from './utils';
 
 const bootstrap = (settings = {}) => {
 
