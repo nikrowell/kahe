@@ -1,12 +1,14 @@
 # kahe
 
-kahe (k&#257;'-he) is a 2.5k HTML5 pushState and hyperscript framework built on ideas from [bigwheel](https://github.com/bigwheel-framework/bigwheel), [page.js](https://visionmedia.github.io/page.js/) and [vue-router](http://router.vuejs.org/). 
+kahe (k&#257;'-he) is a 2.5k pushState and hyperscript framework built on ideas from [bigwheel](https://github.com/bigwheel-framework/bigwheel), [page.js](https://visionmedia.github.io/page.js/) and [vue-router](http://router.vuejs.org/). 
 
-Rather than focusing on reactive interfaces, kahe's emphasis is on creating animated transitions between application states. Routes are mapped to a view function (or multiple view functions), which support several lifecyle methods and are responsible for all rendering logic with the provided request data. The framework exposes a minimal API that includes `on`, `off` and `emit` for event handling, (~~a `route` method for transition hooks~~ coming soon) and an `h` method for generating markup via hyperscript ("hyper~~text~~" + "java~~script~~").
+Rather than focusing on reactive interfaces, kahe's emphasis is on creating animated transitions between application states. Routes are mapped to a view function (or multiple view functions), which support several lifecyle methods and are responsible for all rendering logic with the provided request data. The framework exposes a minimal API that includes `on`, `off` and `emit` for event handling, (~~a `route` method for transition hooks~~ _coming soon_) and an `h` method for generating markup via hyperscript.
 
-**Why kahe?** Because it's the Hawaiian word for _flow_. And because nearly everything else is taken.
+**Why kahe?**
+Because it's the Hawaiian word for _flow_. And because nearly everything else is taken.
 
-**Why hyperscript?** Because it's standard JavaScript and doesn't require additional tooling. If you're looking for JSX in a small package, check out [Preact](https://preactjs.com/) or [Hyperapp](https://hyperapp.js.org/).
+**Why hyperscript?**
+Because it's standard JavaScript and doesn't require additional tooling. If you're looking for JSX in a small package, check out [Preact](https://preactjs.com/) or [Hyperapp](https://hyperapp.js.org/).
 
 ## Installation
 
@@ -61,14 +63,10 @@ app.run();
 
 Property        | Default | Description
 --------------- | ------- | -----------------------------------------
-**`base`**      | `/`     | 
-Base URL to use when resolving routes.
-**`routes`**    | `{}`    | 
-Routes object with keys as URL patterns and values as view function(s) and additional route meta data.
-**`preloader`** | `null`  |
-Initial view to show regardless of the requested route. This view must be a function that accepts a `done` callback. Once `done` is called, routes will begin resolving as normal.
-**`overlap`**   | `true`  |
-Whether or not to sycnronize route transitions. If `false`, incoming routes will only start after all outgoing transitions have finished.
+**`base`**      | `/`     | Base URL to use when resolving routes.
+**`routes`**    | `{}`    | Routes object with keys as URL patterns and values as view function(s) and additional route meta data.
+**`preloader`** | `null`  | Initial view to show regardless of the requested route. This view must be a function that accepts a `done` callback. Once `done` is called, routes will begin resolving as normal.
+**`overlap`**   | `true`  | Whether or not to sycnronize route transitions. If `false`, incoming routes will only start after all outgoing transitions have finished.
 
 ### Routes
 
