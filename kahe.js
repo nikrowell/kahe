@@ -505,9 +505,7 @@
 		return element;
 	};
 
-	var bootstrap = function (settings) {
-	    if ( settings === void 0 ) settings = {};
-
+	function start() {
 
 	    instance.init(settings);
 	    router$1.init(settings);
@@ -528,34 +526,23 @@
 	    } else {
 	        router$1.start();
 	    }
-	};
 
-	var update = function (route) {
+	    this.start = noop;
+	}
+
+	function update(route) {
 
 	    var views = isArray(route.view) ? route.view : [route.view];
-	    var instances = [];
-
-	    for(var i = 0, length = views.length; i < length; i++) {
-	        var view = views[i];
-	        instances[i] = isFunction(view) ? new view() : Object.create(view);
-	    }
+	    var instances = views.map(function (view) { return isFunction(view) ? new view() : Object.create(view); });
 
 	    instance.show(route, instances);
-	};
+	}
 
-	var index = function(init) {
+	var index = function(settings) {
 
-	    function go(url) {
-	        router$1.go(url);
-	    }
+	    var go = router$1.go.bind(router$1);
 
-	    function run() {
-	        var settings = isFunction(init) ? init(bootstrap) : init;
-	        settings && bootstrap(settings);
-	        this.run = noop;
-	    }
-
-	    var framework = { h: h, go: go, run: run };
+	    var framework = { h: h, go: go, start: start };
 	    return events(framework);
 	};
 

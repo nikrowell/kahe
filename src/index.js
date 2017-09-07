@@ -4,7 +4,7 @@ import events from './events';
 import h from './hyperscript';
 import { isArray, isFunction, noop } from './utils';
 
-const bootstrap = (settings = {}) => {
+function start() {
 
     controller.init(settings);
     router.init(settings);
@@ -25,33 +25,22 @@ const bootstrap = (settings = {}) => {
     } else {
         router.start();
     }
-};
 
-const update = (route) => {
+    this.start = noop;
+}
+
+function update(route) {
 
     let views = isArray(route.view) ? route.view : [route.view];
-    let instances = [];
-
-    for(let i = 0, length = views.length; i < length; i++) {
-        let view = views[i];
-        instances[i] = isFunction(view) ? new view() : Object.create(view);
-    }
+    let instances = views.map(view => isFunction(view) ? new view() : Object.create(view));
 
     controller.show(route, instances);
-};
+}
 
-export default function(init) {
+export default function(settings) {
 
-    function go(url) {
-        router.go(url);
-    }
+    let go = router.go.bind(router);
 
-    function run() {
-        let settings = isFunction(init) ? init(bootstrap) : init;
-        settings && bootstrap(settings);
-        this.run = noop;
-    }
-
-    const framework = { h, go, run };
+    const framework = { h, go, start };
     return events(framework);
 };

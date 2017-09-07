@@ -14,7 +14,7 @@ Because it's standard JavaScript and doesn't require additional tooling. If you'
 
 Install through [npm](https://www.npmjs.com/package/kahe) or use as a standalone library with a script tag and one of the bundled files.
 
-`npm install --save kahe`
+`npm install kahe`
 
 ## Usage
 
@@ -56,7 +56,7 @@ import app from './app';
 
 // any other setup work or dom ready handlers
 
-app.run();
+app.start();
 ```
 
 ### Options
@@ -120,7 +120,7 @@ Trigger a named event.
 * `event` - the event name to emit
 * `arguments...` - event data passed to subscribers
 
-### run()
+### start()
 
 Start the framework and begin resolving routes.
 
