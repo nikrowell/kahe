@@ -1,74 +1,82 @@
-import { isArray, isObject, isString } from './utils';
+import { isArray, isDefined, isElement, isObject, isString } from './utils';
 
 const parseTag = /(?:(^|#|\.)([^#\.\[\]]+))|(\[.+?\])/g;
 const parseAttr = /\[(.+?)(?:=("|'|)(.*?)\2)?\]/;
+const cache = {};
 
 export default function(tag, options) {
 
-	var attrs = isObject(options) ? options : {},
-		children = (arguments.length == 3) ? arguments[2] : options,
-		node = {tag: 'div', attrs: {}},
-		classes = [],
-		element,
-		match,
-		key;
+    let attrs = isObject(options) ? options : {};
+    let children = (arguments.length === 3) ? arguments[2] : options;
+    let node = {tag: 'div', attrs: {}};
+    let classes = [];
+    let match;
+    let name;
 
-	while(match = parseTag.exec(tag)) {
+    while(match = parseTag.exec(tag)) {
 
-		if(match[1] === '' && match[2]) {
-			node.tag = match[2];
-		} else if(match[1] === '#') {
-			node.attrs.id = match[2];
-		} else if(match[1] === '.') {
-			classes.push(match[2]);
-		} else if(match[3][0] === '[') {
-			var pair = parseAttr.exec(match[3]);
-			if(pair[1] === 'class') {
-				classes.push(pair[3]);
-			} else {
-				node.attrs[pair[1]] = pair[3] || (pair[2] ? '' : true);
-			}
-		}
-	}
+        if(match[1] === '' && isDefined(match[2])) {
+            node.tag = match[2];
+        } else if(match[1] === '#') {
+            node.attrs.id = match[2];
+        } else if(match[1] === '.') {
+            classes.push(match[2]);
+        } else if(match[3][0] === '[') {
+            let pair = parseAttr.exec(match[3]);
+            node.attrs[pair[1]] = pair[3] || (pair[2] ? '' : true);
+        }
+    }
 
-	for(key in attrs) {
-		if(attrs.hasOwnProperty(key)) {
-			if(key == 'class') {
-				classes.push(attrs[key]);
-			} else {
-				node.attrs[key] = attrs[key];
-			}
-		}
-	}
+    for(name in attrs) {
 
-	element = document.createElement(node.tag);
-	attrs = node.attrs;
+        if(name === 'class') {
+            classes = classes.concat(attrs[name].split(' '));
+        } else if(attrs.hasOwnProperty(name)) {
+            node.attrs[name] = attrs[name];
+        }
+    }
 
-	for(key in attrs) {
-		if(attrs.hasOwnProperty(key)) {
-			if(key == 'class') {
-				classes.push(attrs[key]);
-			} else if(key == 'style') {
-				element.style.cssText = attrs[key];
-			} else if(key == 'styles') {
-				// TODO
-			} else {
-				element[key] = attrs[key];
-			}
-		}
-	}
+    const element = document.createElement(node.tag);
 
-	if(classes.length) {
-		element.className = classes.join(' ');
-	}
+    if(classes.length) {
+        element.classList.add(...classes);
+    }
 
-	if(isString(children)) {
-		element.textContent = children;
-	} else if(isArray(children)) {
-		for(var i = 0, n = children.length; i < n; i++) {
-			element.appendChild(children[i]);
-		}
-	}
+    for(name in node.attrs) {
 
-	return element;
+        let value = node.attrs[name];
+
+        if(name === 'style') {
+
+            if(isString(value)) {
+                element.style.cssText = value;
+            } else {
+                Object.keys(value).forEach(prop => element.style[prop] = value[prop]);
+            }
+
+        } else if(name in element) {
+            element[name] = value;
+        } else {
+            element.setAttribute(name, value);
+        }
+    }
+
+    if(isElement(children)) {
+
+        element.appendChild(children);
+
+    } else if(isString(children) || !isNaN(children)) {
+
+        let text = document.createTextNode(children);
+        element.appendChild(text);
+
+    } else if(isArray(children)) {
+
+        children.forEach(child => {
+            if(isString(child)) child = document.createTextNode(child);
+            element.appendChild(child);
+        });
+    }
+
+    return element;
 };

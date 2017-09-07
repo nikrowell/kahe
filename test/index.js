@@ -1,8 +1,8 @@
-export { framework } from './framework.test';
-export { events } from './events.test';
-// export { hyperscript } from './hyperscript.test';
-// export { controller } from './controller.test';
-// export { mediator } from './mediator.test';
-// export { router } from './router.test';
-// export { route } from './route.test';
-// export { utils } from './utils.test';
+require('./framework.test');
+require('./events.test');
+require('./hyperscript.test');
+// require('./controller.test');
+// require('./mediator.test');
+// require('./router.test');
+// require('./route.test');
+// require('./utils.test');
