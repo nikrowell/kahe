@@ -1,7 +1,7 @@
 {
   "name": "kahe",
   "version": "0.6.0",
-  "description": "",
+  "description": "Minimal frontend framework for managing transition flow between application states.",
   "author": "Nik Rowell <nik@nikrowell.com>",
   "license": "MIT",
   "main": "kahe.js",
@@ -20,8 +20,9 @@
   "scripts": {
     "start": "rollup -c --watch",
     "bundle": "rollup -c",
-    "build": "npm run bundle && uglifyjs kahe.js -mc --comments /^!/ > kahe.min.js && echo $(gzip -c kahe.min.js | wc -c)",
-    "test": "budo test:bundle.js --live --dir test --title kahe -- -t [ babelify --presets [ es2015 ] ] --plugin tap-dev-tool",
+    "build": "npm run bundle && uglifyjs kahe.js -mc --comments /^!/ > kahe.min.js && npm run size",
+    "test": "budo test:bundle.js --live --dir test --title test -- -t [ babelify --presets [ es2015 ] ] --plugin tap-dev-tool",
+    "size": "echo $(gzip -c kahe.min.js | wc -c)",
     "version": "npm run bundle && npm run build && git add --all"
   },
   "devDependencies": {
