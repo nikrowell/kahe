@@ -13,23 +13,15 @@ test('initialize with a function', function(t) {
     t.end();
 });
 
-test('only api exposed', function(t) {
+test('exposed api', function(t) {
 
-    let api = [
-        'h',
-        'go',
-        'on',
-        'off',
-        'emit',
-        'run'
-    ];
+    let api = ['h', 'go', 'on', 'off', 'emit', 'run'];
+    let app = kahe();
 
-    let framework = kahe();
-
-    Object.keys(framework).forEach(key => {
-        api.includes(key) || t.fail(`${key} not in api`)
+    Object.keys(app).forEach(key => {
+        api.includes(key) || t.fail(`${key} not in api`);
     });
 
-    t.pass(`framework exposes ${api.join(', ')}`);
+    t.pass(`framework only exposes ${api.join(', ')}`);
     t.end();
 });

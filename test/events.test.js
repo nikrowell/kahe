@@ -6,7 +6,7 @@ test('subscribe to an event', function(t) {
     let emitter = events({});
 
     emitter.on('test', () => {
-        t.pass('subscribed to event')
+        t.pass('subscribed to event');
         t.end();
     });
 
