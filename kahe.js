@@ -505,40 +505,40 @@
 		return element;
 	};
 
-	function start() {
+	var index = function(settings) {
 
 	    instance.init(settings);
 	    router$1.init(settings);
 	    router$1.on('route', update);
 
-	    window.addEventListener('resize', function (event) {
-	        var width = window.innerWidth;
-	        var height = window.innerHeight;
-	        instance.resize(width, height);
-	    });
+	    function update(route) {
 
-	    if(isFunction(settings.preloader)) {
+	        var views = isArray(route.view) ? route.view : [route.view];
+	        var instances = views.map(function (view) { return isFunction(view) ? new view() : Object.create(view); });
 
-	        var start = router$1.start.bind(router$1);
-	        var intro = settings.preloader.bind(null, start);
-	        update({view: intro});
-
-	    } else {
-	        router$1.start();
+	        instance.show(route, instances);
 	    }
 
-	    this.start = noop;
-	}
+	    function start() {
 
-	function update(route) {
+	        window.addEventListener('resize', function (event) {
+	            var width = window.innerWidth;
+	            var height = window.innerHeight;
+	            instance.resize(width, height);
+	        });
 
-	    var views = isArray(route.view) ? route.view : [route.view];
-	    var instances = views.map(function (view) { return isFunction(view) ? new view() : Object.create(view); });
+	        if(isFunction(settings.preloader)) {
 
-	    instance.show(route, instances);
-	}
+	            var start = router$1.start.bind(router$1);
+	            var intro = settings.preloader.bind(null, start);
+	            update({view: intro});
 
-	var index = function(settings) {
+	        } else {
+	            router$1.start();
+	        }
+
+	        this.start = noop;
+	    }
 
 	    var go = router$1.go.bind(router$1);
 

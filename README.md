@@ -118,7 +118,7 @@ Unsubscribe from an event or, if no event name is provided, from all events.
 Trigger a named event.
 
 * `event` - the event name to emit
-* `arguments...` - event data passed to subscribers
+* `arguments` - event data passed to subscribers
 
 ### start()
 
