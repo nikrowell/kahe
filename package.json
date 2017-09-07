@@ -23,7 +23,7 @@
     "build": "npm run bundle && uglifyjs kahe.js -mc --comments /^!/ > kahe.min.js && npm run size",
     "test": "budo test:bundle.js --live --dir test --title test -- -t [ babelify --presets [ es2015 ] ] --plugin tap-dev-tool",
     "size": "echo $(gzip -c kahe.min.js | wc -c)",
-    "version": "npm run bundle && npm run build && git add --all"
+    "version": "npm run build && npm run size && git add --all"
   },
   "devDependencies": {
     "babel-preset-es2015": "^6.24.1",
