@@ -1,13 +1,7 @@
 import test from 'tape';
 import kahe from '../src/index';
 
-test('initialize with an object', function(t) {
-    // TODO
-    t.ok(kahe, 'kahe');
-    t.end();
-});
-
-test('initialize with a function', function(t) {
+test('initialize kahe', function(t) {
     // TODO
     t.ok(kahe, 'kahe');
     t.end();
@@ -15,7 +9,7 @@ test('initialize with a function', function(t) {
 
 test('exposed api', function(t) {
 
-    let api = ['h', 'go', 'on', 'off', 'emit', 'run'];
+    let api = ['h', 'go', 'on', 'off', 'emit', 'start'];
     let app = kahe();
 
     Object.keys(app).forEach(key => {

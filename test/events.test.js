@@ -43,8 +43,8 @@ test('emit an event with arguments', function(t) {
     let emitter = events({});
 
     emitter.on('test', function(obj, str) {
-        t.ok(obj.name === 'foo', 'passed first argument');
-        t.ok(str === 'bar', 'passed second argument');
+        t.equal(obj.name, 'foo', 'passed first argument');
+        t.equal(str, 'bar', 'passed second argument');
         t.end();
     });
 

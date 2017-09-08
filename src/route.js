@@ -83,13 +83,13 @@ function toRegExp(path, keys) {
 
 function convert(value) {
 
-    if(value == 'true') {
+    if(value === 'true') {
         value = true;
-    } else if(value == 'false') {
+    } else if(value === 'false') {
         value = false;
-    } else if(value == 'null') {
+    } else if(value === 'null') {
         value = null;
-    } else if(value == 'undefined') {
+    } else if(value === 'undefined') {
         value = undefined;
     } else if(isNaN(value) === false) {
         value = Number(value);

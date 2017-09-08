@@ -64,8 +64,10 @@ const router = {
     },
 
     start() {
+
         window.addEventListener('popstate', onpopstate.bind(this));
         document.addEventListener('click', onclick.bind(this));
+
         this.go(window.location.href, {replace: true});
     },
 

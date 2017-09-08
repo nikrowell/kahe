@@ -54,7 +54,7 @@ export function isNumber(value) {
 };
 
 export function isObject(value) {
-    return typeof value === 'object';
+    return typeof value === 'object' && !isArray(value);
 };
 
 export function isString(value) {
