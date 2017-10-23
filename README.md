@@ -1,5 +1,7 @@
 # kahe
 
+_currently undergoing an api-breaking rewrite!_
+
 kahe (k&#257;'-he) is a 2.5k pushState and hyperscript framework built on ideas from [bigwheel](https://github.com/bigwheel-framework/bigwheel), [page.js](https://visionmedia.github.io/page.js/) and [vue-router](http://router.vuejs.org/). 
 
 Rather than focusing on reactive interfaces, kahe's emphasis is on creating animated transitions between application states. Routes are mapped to a view function (or multiple view functions), which support several lifecyle methods and are responsible for all rendering logic with the provided request data. The framework exposes a minimal API that includes `on`, `off` and `emit` for event handling, `go` for programatic navigation, (~~a `route` method for transition hooks~~ _coming soon_) and an `h` method for generating markup via hyperscript.
