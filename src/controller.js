@@ -11,7 +11,7 @@ const controller = {
     },
 
     resize(width, height) {
-        this.current.resize(width, height);
+        this.current && this.current.resize(width, height);
     },
 
     show(request, views) {

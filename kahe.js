@@ -136,7 +136,7 @@
         },
 
         resize: function resize(width, height) {
-            this.current.resize(width, height);
+            this.current && this.current.resize(width, height);
         },
 
         show: function show(request, views) {
