@@ -1,4 +1,4 @@
-/*! kahe 0.6.3 */
+/*! kahe 0.6.4 */
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
     typeof define === 'function' && define.amd ? define(factory) :
