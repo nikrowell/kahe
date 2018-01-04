@@ -1,4 +1,25 @@
 
+// TODO: remove unused functions!
+// or import { isString } from 'kahe/utils';
+// isArray, isFunction, isObject, isString, extend, noop
+
+export function convert(value) {
+
+    if(value === 'true') {
+        value = true;
+    } else if(value === 'false') {
+        value = false;
+    } else if(value === 'null') {
+        value = null;
+    } else if(value === 'undefined') {
+        value = undefined;
+    } else if(isNaN(value) === false) {
+        value = Number(value);
+    }
+
+    return value;
+};
+
 export function extend(target, ...sources) {
 
     if(Object.assign) {

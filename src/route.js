@@ -1,6 +1,6 @@
-import { extend, isArray } from './utils';
+import { convert, extend, isArray } from './utils';
 
-const reserved = /^(view|hash|keys|params|path|query|regex|splats|url)$/;
+const reserved = /^(keys|path|params|regex|splats|view)$/;
 
 class Route {
 
@@ -21,13 +21,13 @@ class Route {
         });
     }
 
-    match(path) {
+    match(url) {
 
+        let path = url.split(/[?#]/)[0];
         let captures = path.match(this.regex);
         if(!captures) return false;
 
-        let params = {};
-        let splats = [];
+        let params = [];
 
         captures.forEach((item, i) => {
 
@@ -37,11 +37,11 @@ class Route {
             if(key) {
                 params[key] = convert(value);
             } else if(value !== 'undefined') {
-                splats.push(value);
+                params.push(convert(value));
             }
         });
 
-        const clone = extend({ path, params, splats }, this);
+        const clone = extend({ path, params }, this);
         delete clone.keys;
         delete clone.regex;
 
@@ -51,7 +51,7 @@ class Route {
 
 function toRegExp(path, keys) {
 
-    if(path[0] != '/') path = '/' + path;
+    if(path[0] !== '/') path = '/' + path;
 
     path = path
         .concat('/?')
@@ -79,23 +79,6 @@ function toRegExp(path, keys) {
         .replace(/\*/g, '(.*)');
 
     return new RegExp('^' + path + '$', 'i');
-}
-
-function convert(value) {
-
-    if(value === 'true') {
-        value = true;
-    } else if(value === 'false') {
-        value = false;
-    } else if(value === 'null') {
-        value = null;
-    } else if(value === 'undefined') {
-        value = undefined;
-    } else if(isNaN(value) === false) {
-        value = Number(value);
-    }
-
-    return value;
 }
 
 export default Route;

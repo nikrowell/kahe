@@ -1,6 +1,6 @@
 import { isFunction, noop } from './utils';
 
-class Mediator {
+export default class Mediator {
 
     constructor(...views) {
         this.views = views;
@@ -57,5 +57,3 @@ class Mediator {
         });
     }
 }
-
-export default Mediator;

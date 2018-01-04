@@ -1,28 +1,25 @@
-import events from './events';
+import Mediator from './mediator';
 import Route from './route';
-import { extend, noop } from './utils';
+import Transition from './transition';
+import { isObject, isString, isUndefined, extend, noop } from './utils';
 
-function match(path) {
+const settings = {};
+const routes = [];
+const beforeHooks = [];
+const afterHooks = [];
 
-    let route = null;
-
-    for(let i = 0, len = this.routes.length; i < len; i++) {
-        route = this.routes[i].match(path);
-        if(route) break;
-    }
-
-    return route;
-}
+let currentRoute;
+let currentTransition;
+let pendingRoute;
+let pendingTransition;
+let incoming;
+let outgoing;
 
 function onpopstate(event) {
-    var href = window.location.href;
-    this.go(href, {replace: true});
+    go(window.location.href, {replace: true});
 }
 
 function onclick(event) {
-
-    event || (event = window.event);
-    var el = event.target;
 
     if( event.defaultPrevented ||
         event.ctrlKey ||
@@ -30,66 +27,134 @@ function onclick(event) {
         event.shiftKey ||
         event.button !== 0) return;
 
+    let el = event.target;
+
     while(el && el.nodeName != 'A') el = el.parentNode;
     if(!el || !el.href) return;
 
     if( el.target ||
-        el.href.indexOf(this.base) == -1 ||
-        el.getAttribute('rel') == 'external' ||
+        el.href.indexOf(settings.base) === -1 ||
+        el.getAttribute('rel') === 'external' ||
         el.hasAttribute('download')) return;
 
     event.preventDefault();
-    this.go(el.href);
+    go(el.href);
 }
 
-const router = {
+function beforeRoute(req, next) {
 
-    init(settings) {
+    console.log('beforeRoute');
+    /*
+    // if(currentTransition) {
+    // is there an active transition in progress?
+    // is it going to the same path, if so, return and ignore
 
-        this.base = window.location.protocol + '//' + window.location.host + (settings.base || '/');
-        this.routes = [];
-        this.resolved = null;
+    route = new Route(req);
 
-        let routes = settings.routes || {};
+    transition = new Transition({
+        type: 'normal', // settings.transition,
+        from: 'TODO currentRoute',
+        to: route
+    });
 
-        if(!routes['*']) {
-            routes['*'] = (routes['/']) ? '/' : noop;
-        }
+    const iterator = function(hook, step, exit) {
 
-        Object.keys(routes).forEach(path => {
-            let config = routes[path];
-            let route = new Route(path, config);
-            this.routes.push(route);
+        hook(transition, (response) => {
+
+            if(response === false) {
+                transition.aborted = true;
+                // go(response, {replace: true});
+                exit();
+            } else if(isString(response)) {
+                transition.aborted = true;
+                // go(response, {replace: true});
+                exit();
+            } else {
+                isObject(response) && extend(route.data, response);
+                step();
+            }
         });
-    },
+    };
 
-    start() {
+    transition.run(beforeHooks, iterator, () => {
+        if(transition.aborted === false) {
+            // currentTransition = transition;
+            next();
+        }
+    });
+    */
+}
 
-        window.addEventListener('popstate', onpopstate.bind(this));
-        document.addEventListener('click', onclick.bind(this));
+function handleRoute(req, next) {
 
-        this.go(window.location.href, {replace: true});
-    },
+    let incoming = pendingRoute.view;
+    let outgoing = currentRoute.view;
 
-    go(url, options = {}) {
+    transition.start(outgoing, incoming, () => {
+        outgoing = incoming;
+        incoming = null;
+        next();
+    });
+}
 
-        url = url.replace(this.base, '');
-        if(url.charAt(0) !== '/') url = '/' + url;
+function afterRoute(req) {
 
-        let path = url.split(/[?#]/)[0];
-        if(path == this.resolved) return;
+    const iterator = function(hook, step) {
+        hook(transition, noop);
+        step();
+    };
 
-        const route = match.call(this, path);
+    transition.run(afterHooks, iterator, noop);
+}
 
-        if(!route) return;
-        if(typeof route.view === 'string') return this.go(route.view);
-
-        window.history[options.replace ? 'replaceState' : 'pushState']({}, '', url);
-
-        this.resolved = path;
-        this.emit('route', route);
-    }
+export function before(hook) {
+    beforeHooks.push(hook);
 };
 
-const instance = Object.create(router);
-export default events(instance);
+export function after(hook) {
+    afterHooks.push(hook);
+};
+
+export function start(options = {}) {
+
+    settings.base = window.location.protocol + '//' + window.location.host + (options.base || '/');
+
+    Object.keys(options.routes).forEach(path => {
+        let config = options.routes[path];
+        let route = new Route(path, config);
+        routes.push(route);
+    });
+
+    /*if(isString(options.click)) {
+        let selector = options.click;
+        settings.click = (el, event) => el.matches(selector);
+    } elseif(isFunction(options.click)) {
+        settings.click = options.click;
+    } else {
+        settings.click = onclick;
+    }*/
+
+    window.addEventListener('popstate', onpopstate);
+    document.addEventListener('click', onclick);
+
+    go(window.location.href, {replace: true});
+};
+
+export function go(url, options = {}) {
+
+    url = url.replace(settings.base, '');
+    if(url.charAt(0) !== '/') url = '/' + url;
+
+    let path = url.split(/[?#]/)[0];
+    if(currentRoute && path === currentRoute.path) return;
+
+    let route = routes.find(route => route.match(path));
+
+    if(isUndefined(route)) return;
+    if(isString(route.view)) return this.go(route.view);
+
+    window.history[options.replace ? 'replaceState' : 'pushState']({}, '', url);
+    currentRoute = route;
+};
+
+export default { before, after, start, go };

@@ -15,5 +15,5 @@ import {
     isUndefined,
     noop
 
-} from './utils';
+} from '../src/utils';
 
