@@ -1,134 +1,146 @@
 # kahe
 
-_currently undergoing an api-breaking rewrite!_
+kahe (k&#257;'-he) is a 2k client-side router built on ideas from [page.js](https://visionmedia.github.io/page.js/), [bigwheel](https://github.com/bigwheel-framework/bigwheel) and [ReactTransitionGroupPlus](https://www.npmjs.com/package/react-transition-group-plus).
 
-kahe (k&#257;'-he) is a 2.5k pushState and hyperscript framework built on ideas from [bigwheel](https://github.com/bigwheel-framework/bigwheel), [page.js](https://visionmedia.github.io/page.js/) and [vue-router](http://router.vuejs.org/). 
-
-Rather than focusing on reactive interfaces, kahe's emphasis is on creating animated transitions between application states. Routes are mapped to a view function (or multiple view functions), which support several lifecyle methods and are responsible for all rendering logic with the provided request data. The framework exposes a minimal API that includes `on`, `off` and `emit` for event handling, `go` for programatic navigation, (~~a `route` method for transition hooks~~ _coming soon_) and an `h` method for generating markup via hyperscript.
+kahe's emphasis is on enabling animated transitions between pages or application states. Routes are mapped to views which support several lifecyle methods and are responsible for all rendering logic with the provided request data. Before and after hooks receive information about where the request is going, and were it's coming from. 
 
 **Why kahe?** 
 Because it's the Hawaiian word for _flow_. And because nearly everything else is taken.
 
-**Why hyperscript?** 
-Because it's standard JavaScript and doesn't require additional tooling. If you're looking for JSX in a small package, check out [Preact](https://preactjs.com/) or [Hyperapp](https://hyperapp.js.org/).
-
 ## Installation
 
-Install through [npm](https://www.npmjs.com/package/kahe) or use as a standalone library with a script tag and one of the bundled files.
+Install through [npm](https://www.npmjs.com/package/kahe) or use as a standalone library with a script tag and one of the bundled files. Please message me if you're interested in a CDN version!
 
 `npm install kahe`
 
 ## Usage
 
-In order to prevent circular dependencies where your **app** initialization defines routes, and routes may also depend on the **app* instance, it's best to define routes configuration settings in a sepatate file:
-
-_config.js_
-
-```javascript
-import { Home, About, Work, Preloader } from './views';
-
-const routes = {
-    '/': Home,
-    '/about': About
-    '/work/:id': Work
-};
-
-export default {
-    routes,
-    base: '/',
-    overlap: false,
-    preloader: Preloader
-};
-```
-
-_app.js_
-
 ```javascript
 import kahe from 'kahe';
-import config from './config';
+import { Home, About, Project } from './views';
 
-const app = kahe(config);
-export default app;
-```
-
-_index.js_
-
-```javascript
-import app from './app';
-
-// any other setup work or dom ready handlers
-
-app.start();
+kahe({
+  routes: {
+    '/': Home,
+    '/about': About
+    '/projects/:slug': Project
+  }
+});
 ```
 
 ### Options
 
-Property        | Default | Description
---------------- | ------- | -----------------------------------------
-**`base`**      | `/`     | Base URL to use when resolving routes.
-**`routes`**    | `{}`    | Routes object with keys as URL patterns and values as view function(s) and additional route meta data.
-**`preloader`** | `null`  | Initial view to show regardless of the requested route. This view must be a function that accepts a `done` callback. Once `done` is called, routes will begin resolving as normal.
-**`overlap`**   | `true`  | Whether or not to sycnronize route transitions. If `false`, incoming routes will only start after all outgoing transitions have finished.
+Property         | Default  | Description
+---------------- | -------- | -----------------------------------------
+**`base`**       | `/`      | Base URL to use when resolving routes.
+**`routes`**     | `[]`     | an object mapping URL patterns to view function(s), or an array of routes config objects with `path` and `view` properties. These can also be defined using the `route(path, config)` method.
+**`before`**     | `null`   | A function or array of functions to be called before a transition begins. Each callback recieves a transition object with `to` and `from` properties representing the incoming and outgoing requests. 
+**`after`**      | `null`   | A function or array of functions to be called after a transition completes. Each callback recieves a transition object with `to` and `from` properties representing the incoming and outgoing requests. 
+**`transition`** | `null`   | A string to specify the default transition flow (see [transitions](#transitions)) or a function to be called before a transition begins.
 
 ### Routes
+
+Routes can be defined in several ways.
+
+**Using individual `route()` calls:**
+```javascript
+import { route } from 'kahe';
+
+route('/', Home);
+route('/about', About);
+route('/projects/:slug', Project);
+
+// start resolving routes
+kahe();
+```
+
+**Using a routes array:**
+```javascript
+kahe({
+  routes: [
+    {path: '/', view: Home},
+    {path: '/about', view: About},
+    {path: '/projects/:slug', view: Project}
+  ]
+});
+```
+
+**Using a routes object:**
+```javascript
+kahe({
+  routes: {
+    '/': Home,
+    '/about': About
+    '/projects/:slug': Project
+  }
+});
+```
 
 ### Views
 
 Views are functions or objects that optionally implement the following lifescyle methods: 
 
 - init
-- animateIn
 - resize
+- animateIn
 - animateOut
 - destroy
 
-Each method receives two arguments: `req` and `done`. `req` is an object representing request data, including captured url params for the incoming route and the view function(s) being executed. 
+The `init`, `animateIn` and `animateOut` methods receives two arguments: `req` and `done`. `req` is an object representing request data, including captured url params. The `resize` method is called immediately before `animateIn` and recieves the current window width and height as arguments. Use the `destory` method to run cleanup work such as removing DOM nodes or event listeners.
 
 ### Transitions
 
-### Events
+Transitions manage the flow between application states and are what make kahe unique. Inspired by [ReactTransitionGroupPlus](https://www.npmjs.com/package/react-transition-group-plus) and the once popular [Gaia Framework](https://github.com/stevensacks/Gaia-Framework/wiki/The-gaia-flow) for Flash, transitions come in three types which control the order at which lifecycle methods are called on incoming and outgoing views. 
+
+#### normal
+
+Transitions are synchronous. 
+
+* incoming.init(req, done)
+* incoming.animateIn(req, done) _and_ outgoing.animateOut(req, done)
+
+#### in-out
+
+* incoming.init(req, done)
+* incoming.animateIn(req, done)
+* outgoing.animateOut(req, done)
+
+#### out-in
+
+* incoming.init(req, done)
+* outgoing.animateOut(req, done)
+* incoming.animateIn(req)
+
+With all transitino types, if another URL is requested while a transitio is in progress, it will be queued and executed imediately after the current transition completes.
 
 ## API
 
-### h(selector[, attrs, children])
+### route(path[, config]);
+
+Adds a route definition if both path and config are specificed. Route config optinos can be a single object representing a view function, an array of view functions or objects or an object containing a `view` property (object or array). The advantage of the last option is being able to add custom route meta that gets merged with the request object. Example:
 
 ```javascript
-app.h('div.class#id', {title: 'title', class: 'foo foo--bar'}, ['children']);
+route('/', {view: Home, name: 'home'});
+route('/photos/:category', {view: Gallery, name: 'gallery'});
 ```
 
-### go(url);
+Calling route with only a string with navigate to the given URL. This is called internally by the framework when a link is clicked, but can be useful to programmatically change states. ~~~Optionally pass `{replace: true}` to update the current `window.history` record rather than pushing a new entry onto the stack.~~~
 
-Navigate to a new URL. This is called internally by the framework when a link is clicked, but can be useful to programmatically change states.
+### before(transition);
 
-### on(event, callback[, context])
+### after(transition);
 
-Subscribe to an event.
-
-* `event` - name of the event to subscribe to
-* `callback` - function to call when event is emitted
-* `context` - _optional_ context to bind the event callback to
-
-### off(event[, callback])
-
-Unsubscribe from an event or, if no event name is provided, from all events.
-
-* `event` - name of the event to unsubscribe from
-* `callback` - function used when binding to the event
-
-### emit(event[, arguments...])
-
-Trigger a named event.
-
-* `event` - the event name to emit
-* `arguments` - event data passed to subscribers
-
-### start()
+### kahe(options);
 
 Start the framework and begin resolving routes.
 
+## Browser Support
+
+kahe uses Promises to handle transition flow, which means a polyfill would be required for IE11 and below.
+
 ## Development
 
-Unit tests use [budo](https://www.npmjs.com/package/budo), [tape](https://www.npmjs.com/package/tape) and [tap-dev-tool](https://www.npmjs.com/package/tap-dev-tool) (for more readable output).
+Unit tests (which are incomplete!) use [budo](https://www.npmjs.com/package/budo), [tape](https://www.npmjs.com/package/tape) and [tap-dev-tool](https://www.npmjs.com/package/tap-dev-tool) (for more readable output).
 
 ```
 npm install -g budo

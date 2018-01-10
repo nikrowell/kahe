@@ -1,49 +1,48 @@
 import { extend, isArray } from './utils';
 
-const reserved = /^(view|hash|keys|params|path|query|regex|splats|url)$/;
+const reserved = /^(hash|initial|keys|path|params|query|regex|view)$/;
 
 class Route {
 
     constructor(path, config) {
 
-        if(isArray(config)) {
-            config = { view: config };
+        if (isArray(config)) {
+            config = {view: config};
         }
 
         this.keys = [];
-        this.regex = toRegExp(path, this.keys);
         this.view = config.view || config;
+        this.regex = toRegExp(path, this.keys);
 
         Object.keys(config).forEach(key => {
-            if(!reserved.test(key)) {
-                this[key] = config[key];
-            }
+            if (!reserved.test(key)) this[key] = config[key];
         });
     }
 
-    match(path) {
+    match(url) {
 
+        let path = url.split(/[?#]/)[0];
         let captures = path.match(this.regex);
-        if(!captures) return false;
+        if (!captures) return;
 
-        let params = {};
-        let splats = [];
+        let params = [];
 
         captures.forEach((item, i) => {
 
             let key = this.keys[i];
             let value = decodeURIComponent(captures[i + 1]);
 
-            if(key) {
+            if (key) {
                 params[key] = convert(value);
-            } else if(value !== 'undefined') {
-                splats.push(value);
+            } else if (value !== 'undefined') {
+                params.push(convert(value));
             }
         });
 
-        const clone = extend({ path, params, splats }, this);
-        delete clone.keys;
+        const clone = extend({ url, path, params }, this);
         delete clone.regex;
+        delete clone.keys;
+        delete clone.view;
 
         return clone;
     }
@@ -51,14 +50,16 @@ class Route {
 
 function toRegExp(path, keys) {
 
-    if(path[0] != '/') path = '/' + path;
+    if (path[0] !== '/') path = '/' + path;
 
     path = path
         .concat('/?')
         .replace(/\/\(/g, '(?:/')
-        .replace(/(\/)?(\.)?:(\w+)(?:(\(.*?\)))?(\?)?|\*/g, function(match, slash, format, key, capture, optional) {
+        .replace(/(\/)?(\.)?:(\w+)(?:(\(.*?\)))?(\?)?|\*/g,
 
-            if(match === '*') {
+        function(match, slash, format, key, capture, optional) {
+
+            if (match === '*') {
                 keys.push(undefined);
                 return match;
             }
@@ -83,15 +84,15 @@ function toRegExp(path, keys) {
 
 function convert(value) {
 
-    if(value === 'true') {
+    if (value === 'true') {
         value = true;
-    } else if(value === 'false') {
+    } else if (value === 'false') {
         value = false;
-    } else if(value === 'null') {
+    } else if (value === 'null') {
         value = null;
-    } else if(value === 'undefined') {
+    } else if (value === 'undefined') {
         value = undefined;
-    } else if(isNaN(value) === false) {
+    } else if (isNaN(value) === false) {
         value = Number(value);
     }
 

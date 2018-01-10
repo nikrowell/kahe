@@ -1,9 +1,10 @@
-import { isFunction, noop } from './utils';
+import { isArray, isFunction, noop } from './utils';
 
-class Mediator {
+export default class Mediator {
 
     constructor(...views) {
-        this.views = views;
+        if (!isArray(views)) views = [views];
+        this.views = views.map(view => isFunction(view) ? new view() : view);
     }
 
     init(req, done) {
@@ -41,21 +42,19 @@ class Mediator {
             isFunction(view[method]) && total++;
         });
 
-        if(!total) {
+        if (!total) {
             done();
             return;
         }
 
         function oneDone() {
-            if(++count === total) done();
+            if (++count === total) done();
         }
 
         this.views.forEach(function(view) {
-            if(isFunction(view[method])) {
+            if (isFunction(view[method])) {
                 view[method].call(view, req, oneDone);
             }
         });
     }
 }
-
-export default Mediator;
