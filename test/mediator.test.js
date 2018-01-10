@@ -46,7 +46,7 @@ c2.animateOut = null;
 
 c3.name = 'c3';
 
-test('mediator lifecycle functions', function(t) {
+test('mediator methods', function(t) {
 
     t.plan(5);
 

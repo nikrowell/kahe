@@ -1,44 +1,22 @@
 /*! kahe 0.6.4 */
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-    typeof define === 'function' && define.amd ? define(['exports'], factory) :
-    (factory((global.kahe = {})));
-}(this, (function (exports) { 'use strict';
-
-    // TODO: remove unused functions!
-    // or import { isString } from 'kahe/utils';
-    // isArray, isFunction, isObject, isString, extend, noop
-
-    function convert(value) {
-
-        if(value === 'true') {
-            value = true;
-        } else if(value === 'false') {
-            value = false;
-        } else if(value === 'null') {
-            value = null;
-        } else if(value === 'undefined') {
-            value = undefined;
-        } else if(isNaN(value) === false) {
-            value = Number(value);
-        }
-
-        return value;
-    }
+    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+    typeof define === 'function' && define.amd ? define(factory) :
+    (global.kahe = factory());
+}(this, (function () { 'use strict';
 
     function extend(target) {
         var sources = [], len = arguments.length - 1;
         while ( len-- > 0 ) sources[ len ] = arguments[ len + 1 ];
 
 
-        if(Object.assign) {
+        if (Object.assign) {
             return Object.assign.apply(Object, [ target ].concat( sources ));
         }
 
         sources.forEach(function (source) {
-            if(!source) { return; }
             Object.keys(source).forEach(function (value, key) {
-                if(source.hasOwnProperty(key)) {
+                if (source.hasOwnProperty(key)) {
                     target[key] = value;
                 }
             });
@@ -47,47 +25,30 @@
         return target;
     }
 
-
-
     function isArray(value) {
         return Array.isArray(value);
     }
-
-
-
-    function isDefined(value) {
-        return value !== undefined;
-    }
-
-
 
     function isFunction(value) {
         return typeof value === 'function';
     }
 
-
-
-
-
-
-
-    function isString(value) {
-        return typeof value === 'string';
+    function isObject(value) {
+        return typeof value === 'object' && !isArray(value);
     }
 
     function isUndefined(value) {
-        return value === undefined;
+        return typeof value === 'undefined';
     }
 
-    function noop() {
-
-    }
+    function noop() {}
 
     var Mediator = function Mediator() {
         var views = [], len = arguments.length;
         while ( len-- ) views[ len ] = arguments[ len ];
 
-        this.views = views;
+        if (!isArray(views)) { views = [views]; }
+        this.views = views.map(function (view) { return isFunction(view) ? new view() : view; });
     };
 
     Mediator.prototype.init = function init (req, done) {
@@ -127,40 +88,38 @@
             isFunction(view[method]) && total++;
         });
 
-        if(!total) {
+        if (!total) {
             done();
             return;
         }
 
         function oneDone() {
-            if(++count === total) { done(); }
+            if (++count === total) { done(); }
         }
 
         this.views.forEach(function(view) {
-            if(isFunction(view[method])) {
+            if (isFunction(view[method])) {
                 view[method].call(view, req, oneDone);
             }
         });
     };
 
-    var reserved = /^(keys|path|params|regex|splats|view)$/;
+    var reserved = /^(hash|initial|keys|path|params|query|regex|view)$/;
 
     var Route = function Route(path, config) {
         var this$1 = this;
 
 
-        if(isArray(config)) {
-            config = { view: config };
+        if (isArray(config)) {
+            config = {view: config};
         }
 
         this.keys = [];
-        this.regex = toRegExp(path, this.keys);
         this.view = config.view || config;
+        this.regex = toRegExp(path, this.keys);
 
         Object.keys(config).forEach(function (key) {
-            if(!reserved.test(key)) {
-                this$1[key] = config[key];
-            }
+            if (!reserved.test(key)) { this$1[key] = config[key]; }
         });
     };
 
@@ -170,7 +129,7 @@
 
         var path = url.split(/[?#]/)[0];
         var captures = path.match(this.regex);
-        if(!captures) { return false; }
+        if (!captures) { return; }
 
         var params = [];
 
@@ -179,30 +138,33 @@
             var key = this$1.keys[i];
             var value = decodeURIComponent(captures[i + 1]);
 
-            if(key) {
+            if (key) {
                 params[key] = convert(value);
-            } else if(value !== 'undefined') {
+            } else if (value !== 'undefined') {
                 params.push(convert(value));
             }
         });
 
-        var clone = extend({ path: path, params: params }, this);
-        delete clone.keys;
+        var clone = extend({ url: url, path: path, params: params }, this);
         delete clone.regex;
+        delete clone.keys;
+        delete clone.view;
 
         return clone;
     };
 
     function toRegExp(path, keys) {
 
-        if(path[0] !== '/') { path = '/' + path; }
+        if (path[0] !== '/') { path = '/' + path; }
 
         path = path
             .concat('/?')
             .replace(/\/\(/g, '(?:/')
-            .replace(/(\/)?(\.)?:(\w+)(?:(\(.*?\)))?(\?)?|\*/g, function(match, slash, format, key, capture, optional) {
+            .replace(/(\/)?(\.)?:(\w+)(?:(\(.*?\)))?(\?)?|\*/g,
 
-                if(match === '*') {
+            function(match, slash, format, key, capture, optional) {
+
+                if (match === '*') {
                     keys.push(undefined);
                     return match;
                 }
@@ -225,98 +187,90 @@
         return new RegExp('^' + path + '$', 'i');
     }
 
-    var Transition = function Transition(ref) {
-        var type = ref.type;
-        var from = ref.from;
-        var to = ref.to;
+    function convert(value) {
 
-        this.type = type;
-        this.from = from;
-        this.to = to;
-        this.aborted = false;
-    };
+        if (value === 'true') {
+            value = true;
+        } else if (value === 'false') {
+            value = false;
+        } else if (value === 'null') {
+            value = null;
+        } else if (value === 'undefined') {
+            value = undefined;
+        } else if (isNaN(value) === false) {
+            value = Number(value);
+        }
 
-    Transition.prototype.run = function run (queue, fn, done) {
+        return value;
+    }
 
-        var step = function(index) {
-            if(index === queue.length) { return done(); }
-            fn(queue[index], function () { return step(index + 1); }, done);
-        };
-
-        step(0);
-    };
-
-    Transition.prototype.start = function start (outgoing, incoming, done) {
-
-        var flow = isDefined(flows[this.type]) ? flows[this.type] : flows['normal'];
-        var queue = flow(outgoing, incoming);
-        var request = this.to;
-
-        var iterator = function(handler, next) {
-
-            if(isArray(handler)) {
-
-                var total = handler.length;
-                var count = 0;
-
-                handler.forEach(function (ref) {
-                        var context = ref.context;
-                        var fn = ref.fn;
-
-                    context[fn].call(context, request, function () {
-                        if(++count == total) { next(); }
-                    });
-                });
-
-                return;
-            }
-
-            var context = handler.context;
-                var fn = handler.fn;
-            context[fn].call(context, request, next);
-        };
-
-        this.run(queue, iterator, done);
-    };
-
-    var flows = {
-
-        normal: function (a, b) { return [
-            {context: a, fn: 'animateOut'},
-            {context: b, fn: 'init'},
-            {context: b, fn: 'animateIn'}
-        ]; },
-        reverse: function (a, b) { return [
-            {context: b, fn: 'init'},
-            {context: b, fn: 'animateIn'},
-            {context: a, fn: 'animateOut'}
-        ]; },
-        preload: function (a, b) { return [
-            {context: b, fn: 'init'},
-            {context: a, fn: 'animateOut'},
-            {context: b, fn: 'animateIn'}
-        ]; },
-        parallel: function (a, b) { return [
-            {context: b, fn: 'init'}, [
-                {context: a, fn: 'animateOut'},
-                {context: b, fn: 'animateIn'}
-            ]
-        ]; }
-    };
-
-    var settings = {};
     var routes = [];
     var beforeHooks = [];
     var afterHooks = [];
 
-    var currentRoute;
-    function onpopstate(event) {
-        go(window.location.href, {replace: true});
-    }
+    var base;
+    var state;
+    var pending;
+    var incoming;
+    var outgoing;
+    var transition;
+
+    var kahe = function (options) {
+        if ( options === void 0 ) options = {};
+
+
+        base = window.location.protocol + '//' + window.location.host + (options.base || '/');
+
+        if (isArray(options.routes)) {
+
+            options.routes.forEach(function (route) {
+                route.path && kahe.route(route.path, route);
+            });
+
+        } else if (isObject(options.routes)) {
+
+            Object.keys(options.routes).forEach(function (key) {
+                kahe.route(key, options.routes[key]);
+            });
+        }
+
+        options.before && kahe.before(options.before);
+        options.after && kahe.after(options.after);
+
+        window.addEventListener('click', onclick);
+        window.addEventListener('touchstart', onclick);
+        window.addEventListener('popstate', onpopstate);
+        window.addEventListener('resize', onresize);
+
+        var href = window.location.href;
+        href = routes.some(function (route) { return route.match(href); }) ? href : (options.fallback || '/');
+
+        navigate(href, {replace: true});
+    };
+
+    kahe.before = function (hook) {
+        if (isFunction(hook)) { hook = [hook]; }
+        beforeHooks.push.apply(beforeHooks, hook);
+    };
+
+    kahe.after = function (hook) {
+        if (isFunction(hook)) { hook = [hook]; }
+        afterHooks.push.apply(afterHooks, hook);
+    };
+
+    kahe.route = function (path, config) {
+
+        if (isUndefined(config)) {
+            navigate(path);
+            return;
+        }
+
+        routes.push( new Route(path, config) );
+    };
 
     function onclick(event) {
 
-        if( event.defaultPrevented ||
+        if (event.defaultPrevented ||
             event.ctrlKey ||
             event.metaKey ||
             event.shiftKey ||
@@ -324,84 +278,119 @@
 
         var el = event.target;
 
-        while(el && el.nodeName != 'A') { el = el.parentNode; }
-        if(!el || !el.href) { return; }
+        while (el && el.nodeName.toUpperCase() !== 'A') { el = el.parentNode; }
+        if (!el || !el.href) { return; }
 
-        if( el.target ||
-            el.href.indexOf(settings.base) === -1 ||
+        if (el.target ||
+            el.href.indexOf(base) === -1 ||
             el.getAttribute('rel') === 'external' ||
             el.hasAttribute('download')) { return; }
 
         event.preventDefault();
-        go(el.href);
+        navigate(el.href);
     }
 
-    function before(hook) {
-        beforeHooks.push(hook);
+    function onpopstate() {
+        navigate(window.location.href, {replace: true});
     }
 
-    function after(hook) {
-        afterHooks.push(hook);
+    function onresize() {
+        var width = window.innerWidth;
+        var height = window.innerHeight;
+        incoming && incoming.resize(width, height);
+        outgoing && outgoing.resize(width, height);
     }
 
-    function start(options) {
+    function navigate(url, options) {
         if ( options === void 0 ) options = {};
 
 
-        settings.base = window.location.protocol + '//' + window.location.host + (options.base || '/');
+        url = url.replace(base, '');
+        if (url.charAt(0) !== '/') { url = '/' + url; }
 
-        Object.keys(options.routes).forEach(function (path) {
-            var config = options.routes[path];
-            var route = new Route(path, config);
-            routes.push(route);
-        });
+        var route;
+        var request;
 
-        /*if(isString(options.click)) {
-            let selector = options.click;
-            settings.click = (el, event) => el.matches(selector);
-        } elseif(isFunction(options.click)) {
-            settings.click = options.click;
-        } else {
-            settings.click = onclick;
-        }*/
+        for (var i = 0; i < routes.length; i++) {
+            route = routes[i];
+            request = route.match(url);
+            if (request) { break; }
+        }
 
-        window.addEventListener('popstate', onpopstate);
-        document.addEventListener('click', onclick);
-
-        go(window.location.href, {replace: true});
-    }
-
-    function go(url, options) {
-        if ( options === void 0 ) options = {};
-
-
-        url = url.replace(settings.base, '');
-        if(url.charAt(0) !== '/') { url = '/' + url; }
-
-        var path = url.split(/[?#]/)[0];
-        if(currentRoute && path === currentRoute.path) { return; }
-
-        var route = routes.find(function (route) { return route.match(path); });
-
-        if(isUndefined(route)) { return; }
-        if(isString(route.view)) { return this.go(route.view); }
+        if (isUndefined(request)) { return; }
+        if (state && state.path === request.path) { return; }
 
         window.history[options.replace ? 'replaceState' : 'pushState']({}, '', url);
-        currentRoute = route;
+        execute(route, request);
     }
 
-    var router$1 = { before: before, after: after, start: start, go: go };
+    function execute(route, request) {
 
-    // export { on, off, emit, before, after, start, go };
-    // export default { on, off, emit, before, after, start, go };
+        if (transition) {
+            pending = {route: route, request: request};
+            return;
+        }
 
-    exports['default'] = router$1;
-    exports.before = before;
-    exports.after = after;
-    exports.start = start;
-    exports.go = go;
+        if (isUndefined(outgoing)) {
+            outgoing = new Mediator();
+            request.initial = true;
+        }
 
-    Object.defineProperty(exports, '__esModule', { value: true });
+        transition = { from: state, to: request };
+        beforeHooks.forEach(function (fn) { return fn(transition); });
+        incoming = new Mediator(route.view);
+        state = request;
+
+        var init = function () {
+            return new Promise(function (resolve) { return incoming.init(request, resolve); });
+        };
+
+        var animateIn = function () {
+            return new Promise(function (resolve) { return incoming.animateIn(request, resolve); });
+        };
+
+        var animateOut = function () {
+            return new Promise(function (resolve) { return outgoing.animateOut(request, resolve); });
+        };
+
+        var done = function () {
+
+            afterHooks.forEach(function (fn) { return fn(transition); });
+            outgoing = incoming;
+            incoming = null;
+            transition = null;
+
+            if (pending) {
+                execute(pending.route, pending.request);
+                pending = null;
+            }
+        };
+
+        switch (transition.type) {
+
+            case 'in-out':
+                init()
+                    .then(animateIn)
+                    .then(animateOut)
+                    .then(done);
+                break;
+
+            case 'out-in':
+                init()
+                    .then(animateOut)
+                    .then(animateIn)
+                    .then(done);
+                break;
+
+            default:
+                init()
+                    .then(function () { return Promise.all([ animateIn(), animateOut() ]); })
+                    .then(done);
+                break;
+        }
+    }
+
+    return kahe;
 
 })));
 //# sourceMappingURL=kahe.js.map

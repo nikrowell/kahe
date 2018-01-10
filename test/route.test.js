@@ -18,12 +18,12 @@ test('route matching', function(t) {
     match = route.match('/lang/en');
     t.equal(match.params.lang, 'en', 'regex paths');
     match = route.match('/lang/english');
-    t.equal(match, false, 'regex paths');
+    t.notOk(match, 'regex paths');
 
     route = new Route('/:controller/:action/:id.:format?', {});
-    match = route.match('/users/view/20171025.json');
-    t.equal(match.path, '/users/view/20171025.json', 'path');
-    t.deepEqual(match.params, {controller: 'users', action: 'view', id: 20171025, format: 'json'}, 'multiple params');
+    match = route.match('/users/view/20181009.json');
+    t.equal(match.path, '/users/view/20181009.json', 'path');
+    t.deepEqual(match.params, {controller: 'users', action: 'view', id: 20181009, format: 'json'}, 'multiple params');
     match = route.match('/projects/edit/bdbf7640');
     t.deepEqual(match.params, {controller: 'projects', action: 'edit', id: 'bdbf7640', format: undefined}, 'optional params');
 
@@ -40,17 +40,18 @@ test('route matching', function(t) {
     t.end();
 });
 
-test('route cloning', function(t) {
+test('route meta', function(t) {
 
     let route = new Route('/photos/:category', {
-        auth: false,
+        auth: true,
         name: 'gallery',
         keys: 'reserved'
     });
 
     let match = route.match('/photos/landscapes');
 
-    t.equal(match.name, 'gallery', 'custom route meta');
+    t.ok(match.auth, 'custom route meta added');
+    t.equal(match.name, 'gallery', 'custom route meta added');
     t.notOk(match.keys, 'internal properties removed');
     t.end();
 });

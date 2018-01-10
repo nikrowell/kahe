@@ -14,14 +14,14 @@
     "frontend",
     "pushstate",
     "router",
-    "transition",
+    "transitions",
     "framework"
   ],
   "scripts": {
     "start": "rollup -c --watch",
     "bundle": "rollup -c",
     "build": "npm run bundle && uglifyjs kahe.js -mc --comments /^!/ > kahe.min.js && npm run size",
-    "test": "budo test:bundle.js --live --open --pushstate --force-default-index --title test -- -t [ babelify --presets [ es2015 ] ] --plugin tap-dev-tool",
+    "test": "budo test:bundle.js --live --open --pushstate --force-default-index -- -t [ babelify --presets [ es2015 ] ] --plugin tap-dev-tool",
     "size": "echo $(gzip -c kahe.min.js | wc -c)",
     "version": "npm run build && git add --all"
   },
