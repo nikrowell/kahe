@@ -1,6 +1,6 @@
 {
   "name": "kahe",
-  "version": "0.6.4",
+  "version": "0.7.0",
   "description": "Minimal frontend framework for managing transition flow between application states.",
   "author": "Nik Rowell <nik@nikrowell.com>",
   "license": "MIT",
