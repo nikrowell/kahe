@@ -13,55 +13,58 @@ let incoming;
 let outgoing;
 let transition;
 
-const kahe = (options = {}) => {
+const kahe = {
 
-    base = window.location.protocol + '//' + window.location.host + (options.base || '/');
+    before(hook) {
+        if (isFunction(hook)) hook = [hook];
+        beforeHooks.push(...hook);
+    },
 
-    if (isArray(options.routes)) {
+    after(hook) {
+        if (isFunction(hook)) hook = [hook];
+        afterHooks.push(...hook);
+    },
 
-        options.routes.forEach(route => {
-            route.path && kahe.route(route.path, route);
-        });
+    route(path, config) {
 
-    } else if (isObject(options.routes)) {
+        if (isUndefined(config)) {
+            navigate(path);
+            return;
+        }
 
-        Object.keys(options.routes).forEach(key => {
-            kahe.route(key, options.routes[key]);
-        });
+        routes.push( new Route(path, config) );
+    },
+
+    start(options = {}) {
+
+        base = window.location.protocol + '//' + window.location.host + (options.base || '/');
+
+        if (isArray(options.routes)) {
+
+            options.routes.forEach(route => {
+                route.path && kahe.route(route.path, route);
+            });
+
+        } else if (isObject(options.routes)) {
+
+            Object.keys(options.routes).forEach(key => {
+                kahe.route(key, options.routes[key]);
+            });
+        }
+
+        options.before && kahe.before(options.before);
+        options.after && kahe.after(options.after);
+
+        window.addEventListener('click', onclick);
+        window.addEventListener('touchstart', onclick);
+        window.addEventListener('popstate', onpopstate);
+        window.addEventListener('resize', onresize);
+
+        let href = window.location.href;
+        href = routes.some(route => route.match(href)) ? href : (options.fallback || '/');
+
+        navigate(href, {replace: true});
     }
-
-    options.before && kahe.before(options.before);
-    options.after && kahe.after(options.after);
-
-    window.addEventListener('click', onclick);
-    window.addEventListener('touchstart', onclick);
-    window.addEventListener('popstate', onpopstate);
-    window.addEventListener('resize', onresize);
-
-    let href = window.location.href;
-    href = routes.some(route => route.match(href)) ? href : (options.fallback || '/');
-
-    navigate(href, {replace: true});
-};
-
-kahe.before = (hook) => {
-    if (isFunction(hook)) hook = [hook];
-    beforeHooks.push(...hook);
-};
-
-kahe.after = (hook) => {
-    if (isFunction(hook)) hook = [hook];
-    afterHooks.push(...hook);
-};
-
-kahe.route = (path, config) => {
-
-    if (isUndefined(config)) {
-        navigate(path);
-        return;
-    }
-
-    routes.push( new Route(path, config) );
 };
 
 function onclick(event) {
@@ -162,13 +165,6 @@ function execute(route, request) {
 
     switch (transition.type) {
 
-        case 'in-out':
-            init()
-                .then(animateIn)
-                .then(animateOut)
-                .then(done);
-            break;
-
         case 'out-in':
             init()
                 .then(animateOut)
@@ -176,9 +172,16 @@ function execute(route, request) {
                 .then(done);
             break;
 
+        case 'in-out':
+            init()
+                .then(animateIn)
+                .then(animateOut)
+                .then(done);
+            break;
+
         default:
             init()
-                .then(() => Promise.all([ animateIn(), animateOut() ]))
+                .then(() => Promise.all([ animateOut(), animateIn() ]))
                 .then(done);
             break;
     }

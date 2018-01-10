@@ -215,57 +215,60 @@
     var outgoing;
     var transition;
 
-    var kahe = function (options) {
-        if ( options === void 0 ) options = {};
+    var kahe = {
+
+        before: function before(hook) {
+            if (isFunction(hook)) { hook = [hook]; }
+            beforeHooks.push.apply(beforeHooks, hook);
+        },
+
+        after: function after(hook) {
+            if (isFunction(hook)) { hook = [hook]; }
+            afterHooks.push.apply(afterHooks, hook);
+        },
+
+        route: function route(path, config) {
+
+            if (isUndefined(config)) {
+                navigate(path);
+                return;
+            }
+
+            routes.push( new Route(path, config) );
+        },
+
+        start: function start(options) {
+            if ( options === void 0 ) options = {};
 
 
-        base = window.location.protocol + '//' + window.location.host + (options.base || '/');
+            base = window.location.protocol + '//' + window.location.host + (options.base || '/');
 
-        if (isArray(options.routes)) {
+            if (isArray(options.routes)) {
 
-            options.routes.forEach(function (route) {
-                route.path && kahe.route(route.path, route);
-            });
+                options.routes.forEach(function (route) {
+                    route.path && kahe.route(route.path, route);
+                });
 
-        } else if (isObject(options.routes)) {
+            } else if (isObject(options.routes)) {
 
-            Object.keys(options.routes).forEach(function (key) {
-                kahe.route(key, options.routes[key]);
-            });
+                Object.keys(options.routes).forEach(function (key) {
+                    kahe.route(key, options.routes[key]);
+                });
+            }
+
+            options.before && kahe.before(options.before);
+            options.after && kahe.after(options.after);
+
+            window.addEventListener('click', onclick);
+            window.addEventListener('touchstart', onclick);
+            window.addEventListener('popstate', onpopstate);
+            window.addEventListener('resize', onresize);
+
+            var href = window.location.href;
+            href = routes.some(function (route) { return route.match(href); }) ? href : (options.fallback || '/');
+
+            navigate(href, {replace: true});
         }
-
-        options.before && kahe.before(options.before);
-        options.after && kahe.after(options.after);
-
-        window.addEventListener('click', onclick);
-        window.addEventListener('touchstart', onclick);
-        window.addEventListener('popstate', onpopstate);
-        window.addEventListener('resize', onresize);
-
-        var href = window.location.href;
-        href = routes.some(function (route) { return route.match(href); }) ? href : (options.fallback || '/');
-
-        navigate(href, {replace: true});
-    };
-
-    kahe.before = function (hook) {
-        if (isFunction(hook)) { hook = [hook]; }
-        beforeHooks.push.apply(beforeHooks, hook);
-    };
-
-    kahe.after = function (hook) {
-        if (isFunction(hook)) { hook = [hook]; }
-        afterHooks.push.apply(afterHooks, hook);
-    };
-
-    kahe.route = function (path, config) {
-
-        if (isUndefined(config)) {
-            navigate(path);
-            return;
-        }
-
-        routes.push( new Route(path, config) );
     };
 
     function onclick(event) {
@@ -368,13 +371,6 @@
 
         switch (transition.type) {
 
-            case 'in-out':
-                init()
-                    .then(animateIn)
-                    .then(animateOut)
-                    .then(done);
-                break;
-
             case 'out-in':
                 init()
                     .then(animateOut)
@@ -382,9 +378,16 @@
                     .then(done);
                 break;
 
+            case 'in-out':
+                init()
+                    .then(animateIn)
+                    .then(animateOut)
+                    .then(done);
+                break;
+
             default:
                 init()
-                    .then(function () { return Promise.all([ animateIn(), animateOut() ]); })
+                    .then(function () { return Promise.all([ animateOut(), animateIn() ]); })
                     .then(done);
                 break;
         }

@@ -19,7 +19,7 @@ Install through [npm](https://www.npmjs.com/package/kahe) or use as a standalone
 import kahe from 'kahe';
 import { Home, About, Project } from './views';
 
-kahe({
+kahe.start({
   routes: {
     '/': Home,
     '/about': About
@@ -44,19 +44,19 @@ Routes can be defined in several ways.
 
 **Using individual `route()` calls:**
 ```javascript
-import { route } from 'kahe';
+import { route, start } from 'kahe';
 
 route('/', Home);
 route('/about', About);
 route('/projects/:slug', Project);
 
 // start resolving routes
-kahe();
+start();
 ```
 
 **Using a routes array:**
 ```javascript
-kahe({
+kahe.start({
   routes: [
     {path: '/', view: Home},
     {path: '/about', view: About},
@@ -67,7 +67,7 @@ kahe({
 
 **Using a routes object:**
 ```javascript
-kahe({
+kahe.start({
   routes: {
     '/': Home,
     '/about': About
@@ -99,19 +99,19 @@ Transitions are synchronous.
 * incoming.init(req, done)
 * incoming.animateIn(req, done) _and_ outgoing.animateOut(req, done)
 
-#### in-out
-
-* incoming.init(req, done)
-* incoming.animateIn(req, done)
-* outgoing.animateOut(req, done)
-
 #### out-in
 
 * incoming.init(req, done)
 * outgoing.animateOut(req, done)
 * incoming.animateIn(req)
 
-With all transitino types, if another URL is requested while a transitio is in progress, it will be queued and executed imediately after the current transition completes.
+#### in-out
+
+* incoming.init(req, done)
+* incoming.animateIn(req, done)
+* outgoing.animateOut(req, done)
+
+With all transition types, if another URL is requested while a transitio is in progress, it will be queued and executed imediately after the current transition completes.
 
 ## API
 
@@ -130,7 +130,7 @@ Calling route with only a string with navigate to the given URL. This is called 
 
 ### after(transition);
 
-### kahe(options);
+### start(options);
 
 Start the framework and begin resolving routes.
 
@@ -142,7 +142,7 @@ kahe uses Promises to handle transition flow, which means a polyfill would be re
 
 Unit tests (which are incomplete!) use [budo](https://www.npmjs.com/package/budo), [tape](https://www.npmjs.com/package/tape) and [tap-dev-tool](https://www.npmjs.com/package/tap-dev-tool) (for more readable output).
 
-```
+```bash
 npm install -g budo
 npm install
 npm run test
