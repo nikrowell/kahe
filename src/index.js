@@ -60,7 +60,7 @@ const kahe = {
         window.addEventListener('popstate', onpopstate);
         window.addEventListener('resize', onresize);
 
-        // let href = window.location.href;
+        let href = window.location.href;
         // href = routes.some(route => route.match(href)) ? href : (options.fallback || '/');
 
         navigate(href, {replace: true});
