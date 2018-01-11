@@ -264,8 +264,8 @@
             window.addEventListener('popstate', onpopstate);
             window.addEventListener('resize', onresize);
 
-            var href = window.location.href;
-            href = routes.some(function (route) { return route.match(href); }) ? href : (options.fallback || '/');
+            // let href = window.location.href;
+            // href = routes.some(route => route.match(href)) ? href : (options.fallback || '/');
 
             navigate(href, {replace: true});
         }
@@ -387,7 +387,7 @@
 
             default:
                 init()
-                    .then(function () { return Promise.all([ animateOut(), animateIn() ]); })
+                    .then(function () { return Promise.all([ animateIn(), animateOut() ]); })
                     .then(done);
                 break;
         }
@@ -396,4 +396,3 @@
     return kahe;
 
 })));
-//# sourceMappingURL=kahe.js.map

@@ -60,8 +60,8 @@ const kahe = {
         window.addEventListener('popstate', onpopstate);
         window.addEventListener('resize', onresize);
 
-        let href = window.location.href;
-        href = routes.some(route => route.match(href)) ? href : (options.fallback || '/');
+        // let href = window.location.href;
+        // href = routes.some(route => route.match(href)) ? href : (options.fallback || '/');
 
         navigate(href, {replace: true});
     }
@@ -181,7 +181,7 @@ function execute(route, request) {
 
         default:
             init()
-                .then(() => Promise.all([ animateOut(), animateIn() ]))
+                .then(() => Promise.all([ animateIn(), animateOut() ]))
                 .then(done);
             break;
     }

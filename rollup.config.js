@@ -6,8 +6,7 @@ export default {
     output: {
         name: 'kahe',
         file: 'kahe.js',
-        format: 'umd',
-        sourcemap: true
+        format: 'umd'
     },
     banner: `/*! ${pkg.name} ${pkg.version} */`,
     indent: true,
