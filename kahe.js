@@ -264,8 +264,8 @@
             window.addEventListener('popstate', onpopstate);
             window.addEventListener('resize', onresize);
 
-            var href = window.location.href;
-            // href = routes.some(route => route.match(href)) ? href : (options.fallback || '/');
+            var href = '/' + window.location.href.replace(base, '');
+            href = routes.some(function (route) { return route.match(href); }) ? href : (options.fallback || '/');
 
             navigate(href, {replace: true});
         }
@@ -372,24 +372,24 @@
         switch (transition.type) {
 
             case 'out-in':
-                init()
+
+                return init()
                     .then(animateOut)
                     .then(animateIn)
                     .then(done);
-                break;
 
             case 'in-out':
-                init()
+
+                return init()
                     .then(animateIn)
                     .then(animateOut)
                     .then(done);
-                break;
 
             default:
-                init()
+
+                return init()
                     .then(function () { return Promise.all([ animateIn(), animateOut() ]); })
                     .then(done);
-                break;
         }
     }
 
