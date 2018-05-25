@@ -167,8 +167,8 @@ function execute(route, request) {
 
         case 'out-in':
 
-            return init()
-                .then(animateOut)
+            return animateOut()
+                .then(init)
                 .then(animateIn)
                 .then(done);
 
