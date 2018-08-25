@@ -2,8 +2,7 @@ _*
 *.log
 *.map
 .DS_Store
-index.php
 index.html
 node_modules/
-*.sublime-project
-*.sublime-workspace
+Notes.pdf
+Things.pdf
