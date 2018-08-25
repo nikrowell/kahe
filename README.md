@@ -2,9 +2,9 @@
 
 kahe (k&#257;'-he) is a 2k client-side router built on ideas from [page.js](https://visionmedia.github.io/page.js/), [bigwheel](https://github.com/bigwheel-framework/bigwheel) and [ReactTransitionGroupPlus](https://www.npmjs.com/package/react-transition-group-plus).
 
-kahe's emphasis is on enabling animated transitions between pages or application states. Routes are mapped to views which support several lifecyle methods and are responsible for all rendering logic with the provided request data. Before and after hooks receive information about where the request is going, and were it's coming from. 
+kahe's emphasis is on enabling animated transitions between pages or application states. Routes are mapped to views which support several lifecyle methods and are responsible for all rendering logic with the provided request data. Before and after hooks receive information about where the request is going, and were it's coming from.
 
-**Why kahe?** 
+**Why kahe?**
 Because it's the Hawaiian word for _flow_. And because nearly everything else is taken.
 
 ## Installation
@@ -34,8 +34,8 @@ Property         | Default  | Description
 ---------------- | -------- | -----------------------------------------
 **`base`**       | `/`      | Base URL to use when resolving routes.
 **`routes`**     | `[]`     | an object mapping URL patterns to view function(s), or an array of routes config objects with `path` and `view` properties. These can also be defined using the `route(path, config)` method.
-**`before`**     | `null`   | A function or array of functions to be called before a transition begins. Each callback recieves a transition object with `to` and `from` properties representing the incoming and outgoing requests. 
-**`after`**      | `null`   | A function or array of functions to be called after a transition completes. Each callback recieves a transition object with `to` and `from` properties representing the incoming and outgoing requests. 
+**`before`**     | `null`   | A function or array of functions to be called before a transition begins. Each callback recieves a transition object with `to` and `from` properties representing the incoming and outgoing requests.
+**`after`**      | `null`   | A function or array of functions to be called after a transition completes. Each callback recieves a transition object with `to` and `from` properties representing the incoming and outgoing requests.
 **`transition`** | `null`   | A string to specify the default transition flow (see [transitions](#transitions)) or a function to be called before a transition begins.
 
 ### Routes
@@ -78,7 +78,7 @@ kahe.start({
 
 ### Views
 
-Views are functions or objects that optionally implement the following lifescyle methods: 
+Views are functions or objects that optionally implement the following lifescyle methods:
 
 - init
 - resize
@@ -90,11 +90,11 @@ The `init`, `animateIn` and `animateOut` methods receives two arguments: `req` a
 
 ### Transitions
 
-Transitions manage the flow between application states and are what make kahe unique. Inspired by [ReactTransitionGroupPlus](https://www.npmjs.com/package/react-transition-group-plus) and the once popular [Gaia Framework](https://github.com/stevensacks/Gaia-Framework/wiki/The-gaia-flow) for Flash, transitions come in three types which control the order at which lifecycle methods are called on incoming and outgoing views. 
+Transitions manage the flow between application states and are what make kahe unique. Inspired by [ReactTransitionGroupPlus](https://www.npmjs.com/package/react-transition-group-plus) and the once popular [Gaia Framework](https://github.com/stevensacks/Gaia-Framework/wiki/The-gaia-flow) for Flash, transitions come in three types which control the order at which lifecycle methods are called on incoming and outgoing views.
 
 #### normal
 
-Transitions are synchronous. 
+Transitions are synchronous.
 
 * incoming.init(req, done)
 * incoming.animateIn(req, done) _and_ outgoing.animateOut(req, done)

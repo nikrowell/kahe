@@ -20,7 +20,8 @@
   "scripts": {
     "start": "rollup -c --watch",
     "bundle": "rollup -c",
-    "build": "npm run bundle && uglifyjs kahe.js -mc --comments /^!/ > kahe.min.js && echo $(gzip -c kahe.min.js | wc -c)",
+    "build": "npm run bundle && uglifyjs kahe.js -mc --comments /^!/ > kahe.min.js && npm run size",
+    "size": "echo $(gzip -c kahe.min.js | wc -c)",
     "test": "budo test:bundle.js --live --open --pushstate --force-default-index -- -t [ babelify --presets [ es2015 ] ] --plugin tap-dev-tool",
     "version": "npm run build && git add --all"
   },
